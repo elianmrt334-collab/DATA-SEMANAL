@@ -234,10 +234,23 @@
                                 <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightBlue rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
                                 <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 relative z-10">Comunidad Total</p>
                                 <h3 class="text-4xl font-black text-coosajo-blue relative z-10" id="val-followers">0</h3>
-                                <div class="mt-2 text-[11px] font-medium text-gray-500 relative z-10">
-                                    <span class="text-coosajo-green font-bold"><i class="fa-solid fa-arrow-up"></i> <span id="val-gained">0</span></span> ganados | 
-                                    <span class="text-red-500 font-bold"><i class="fa-solid fa-arrow-down"></i> <span id="val-lost">0</span></span> perdidos
-                                    <br><span class="text-coosajo-blue font-bold mt-1 inline-block border-t border-gray-200 pt-1 w-full">Crecimiento Neto: <span id="val-net">0</span></span>
+                                
+                                <!-- NUEVO: Balance de Seguidores con la operación visual -->
+                                <div class="mt-3 bg-white/80 backdrop-blur-sm rounded-xl p-2.5 border border-gray-200 shadow-sm relative z-10 flex flex-col gap-1">
+                                    <p class="text-[9px] uppercase font-bold text-gray-500 tracking-wider">Balance del período</p>
+                                    <div class="flex items-center justify-between text-sm font-black mt-1">
+                                        <div class="text-coosajo-green bg-green-50 border border-green-100 px-2 py-1 rounded-lg flex items-center gap-1" title="Seguidores Ganados">
+                                            <i class="fa-solid fa-arrow-up text-[10px]"></i><span id="val-gained">0</span>
+                                        </div>
+                                        <div class="text-gray-400 font-bold text-sm">-</div>
+                                        <div class="text-red-500 bg-red-50 border border-red-100 px-2 py-1 rounded-lg flex items-center gap-1" title="Seguidores Perdidos">
+                                            <i class="fa-solid fa-arrow-down text-[10px]"></i><span id="val-lost">0</span>
+                                        </div>
+                                        <div class="text-gray-400 font-bold text-sm">=</div>
+                                        <div class="text-coosajo-blue text-base flex items-center gap-1 bg-coosajo-lightBlue border border-blue-200 px-2.5 py-1 rounded-lg" title="Crecimiento Neto">
+                                            <span id="val-net">0</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
@@ -342,21 +355,31 @@
                     <div id="tab-comparativa" class="tab-content fade-in hidden space-y-6">
                         <div>
                             <h2 class="text-3xl font-extrabold text-coosajo-blue tracking-tight">Comparativa de Períodos</h2>
-                            <p class="text-gray-500 text-sm mt-1">Selecciona dos períodos ingresados manualmente para ver su diferencia.</p>
+                            <p class="text-gray-500 text-sm mt-1">Selecciona dos períodos ingresados manualmente para ver su diferencia gráfica y numérica.</p>
                         </div>
 
                         <div class="glass-card p-6 rounded-3xl">
                             <div class="flex flex-col md:flex-row gap-6 items-center justify-between mb-8">
                                 <div class="w-full md:w-5/12">
                                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 text-center md:text-left">Período A (Base)</label>
-                                    <select id="comp-period-1" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 font-bold text-coosajo-blue" onchange="window.renderComparativa()"></select>
+                                    <select id="comp-period-1" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 font-bold text-gray-500" onchange="window.renderComparativa()"></select>
                                 </div>
                                 <div class="hidden md:flex w-2/12 justify-center">
                                     <div class="w-12 h-12 rounded-full bg-coosajo-lightBlue text-coosajo-blue flex items-center justify-center font-bold text-xl shadow-inner border border-blue-100">VS</div>
                                 </div>
                                 <div class="w-full md:w-5/12">
                                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 text-center md:text-right">Período B (A Comparar)</label>
-                                    <select id="comp-period-2" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 font-bold text-coosajo-blue" onchange="window.renderComparativa()"></select>
+                                    <select id="comp-period-2" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 font-bold text-coosajo-green" onchange="window.renderComparativa()"></select>
+                                </div>
+                            </div>
+
+                            <!-- Gráfico de Comparativa (Superpuesto) -->
+                            <div id="comp-chart-container" class="hidden mb-10 pb-6 border-b border-gray-100">
+                                <h3 class="text-lg font-bold text-coosajo-blue mb-6 flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-line text-blue-500"></i> Evolución Diaria Comparada (Impresiones)
+                                </h3>
+                                <div class="h-80 w-full relative">
+                                    <canvas id="compEvolucionChart"></canvas>
                                 </div>
                             </div>
 
@@ -537,6 +560,7 @@
             let appData = JSON.parse(localStorage.getItem('coosajo_dashboard_data')) || initialData;
             let currentWeek = Object.keys(appData).length > 0 ? Object.keys(appData)[0] : "";
             let mainChart = null;
+            let compChart = null;
 
             // 2. ELEMENTOS DEL DOM
             const loginScreen = document.getElementById('login-screen');
@@ -967,18 +991,84 @@
                 const p1 = document.getElementById('comp-period-1').value;
                 const p2 = document.getElementById('comp-period-2').value;
                 const tbody = document.getElementById('comp-table-body');
+                const chartContainer = document.getElementById('comp-chart-container');
                 
                 document.getElementById('comp-label-1').innerText = p1 || 'Período A';
                 document.getElementById('comp-label-2').innerText = p2 || 'Período B';
 
                 if(!p1 || !p2 || !appData[p1] || !appData[p2]) {
                     tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400 font-medium">Selecciona dos períodos válidos en los menús de arriba para comparar.</td></tr>';
+                    chartContainer.classList.add('hidden');
                     return;
                 }
 
+                chartContainer.classList.remove('hidden');
+
                 const m1 = appData[p1].metrics;
                 const m2 = appData[p2].metrics;
+                const d1 = appData[p1].daily || [0,0,0,0,0,0,0];
+                const d2 = appData[p2].daily || [0,0,0,0,0,0,0];
 
+                // RENDERIZAR GRÁFICO SUPERPUESTO
+                const ctxComp = document.getElementById('compEvolucionChart').getContext('2d');
+                if(!compChart) {
+                    compChart = new Chart(ctxComp, {
+                        type: 'line',
+                        data: {
+                            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                            datasets: [
+                                {
+                                    label: p1,
+                                    data: d1,
+                                    borderColor: '#94a3b8', // Color Gris/Neutro para Período Base
+                                    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                                    borderWidth: 3,
+                                    pointBackgroundColor: '#ffffff',
+                                    pointBorderColor: '#94a3b8',
+                                    pointRadius: 4,
+                                    fill: true,
+                                    tension: 0.4
+                                },
+                                {
+                                    label: p2,
+                                    data: d2,
+                                    borderColor: '#158e45', // Color Verde COOSAJO para Período a Comparar
+                                    backgroundColor: 'rgba(21, 142, 69, 0.15)',
+                                    borderWidth: 3,
+                                    pointBackgroundColor: '#ffffff',
+                                    pointBorderColor: '#158e45',
+                                    pointRadius: 5,
+                                    fill: true,
+                                    tension: 0.4
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            interaction: {
+                                mode: 'index',
+                                intersect: false,
+                            },
+                            plugins: { 
+                                legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: {family: 'Inter', weight: 'bold'} } }, 
+                                tooltip: { backgroundColor: '#172e59', padding: 12, cornerRadius: 8, titleFont: {family: 'Inter'}, bodyFont: {family: 'Inter'} } 
+                            },
+                            scales: {
+                                y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(0,0,0,0.03)' } },
+                                x: { grid: { display: false }, border: { display: false } }
+                            }
+                        }
+                    });
+                } else {
+                    compChart.data.datasets[0].label = p1;
+                    compChart.data.datasets[0].data = d1;
+                    compChart.data.datasets[1].label = p2;
+                    compChart.data.datasets[1].data = d2;
+                    compChart.update();
+                }
+
+                // RENDERIZAR TABLA DE COMPARATIVA
                 const compareKeys = [
                     { label: 'Seguidores Totales', key: 'followers' },
                     { label: 'Seguidores Ganados', key: 'gained' },
