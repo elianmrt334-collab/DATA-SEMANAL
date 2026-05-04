@@ -196,6 +196,9 @@
                         <button id="nav-reporte" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-500 hover:bg-gray-50 hover:text-coosajo-blue transition-all border border-transparent">
                             <i class="fa-solid fa-star w-5 text-lg text-yellow-500"></i> Top 10 Posts
                         </button>
+                        <button id="nav-comparativa" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-500 hover:bg-gray-50 hover:text-coosajo-blue transition-all border border-transparent">
+                            <i class="fa-solid fa-code-compare w-5 text-lg text-blue-500"></i> Comparativa
+                        </button>
                     </nav>
 
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2 mt-8">Gestión de Datos</p>
@@ -231,6 +234,11 @@
                                 <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightBlue rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
                                 <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 relative z-10">Comunidad Total</p>
                                 <h3 class="text-4xl font-black text-coosajo-blue relative z-10" id="val-followers">0</h3>
+                                <div class="mt-2 text-[11px] font-medium text-gray-500 relative z-10">
+                                    <span class="text-coosajo-green font-bold"><i class="fa-solid fa-arrow-up"></i> <span id="val-gained">0</span></span> ganados | 
+                                    <span class="text-red-500 font-bold"><i class="fa-solid fa-arrow-down"></i> <span id="val-lost">0</span></span> perdidos
+                                    <br><span class="text-coosajo-blue font-bold mt-1 inline-block border-t border-gray-200 pt-1 w-full">Crecimiento Neto: <span id="val-net">0</span></span>
+                                </div>
                             </div>
                             <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
                                 <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightGreen rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
@@ -329,6 +337,48 @@
                     </div>
 
                     <!-- ========================================== -->
+                    <!-- VISTA: COMPARATIVA (NUEVA)                 -->
+                    <!-- ========================================== -->
+                    <div id="tab-comparativa" class="tab-content fade-in hidden space-y-6">
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-coosajo-blue tracking-tight">Comparativa de Períodos</h2>
+                            <p class="text-gray-500 text-sm mt-1">Selecciona dos períodos ingresados manualmente para ver su diferencia.</p>
+                        </div>
+
+                        <div class="glass-card p-6 rounded-3xl">
+                            <div class="flex flex-col md:flex-row gap-6 items-center justify-between mb-8">
+                                <div class="w-full md:w-5/12">
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 text-center md:text-left">Período A (Base)</label>
+                                    <select id="comp-period-1" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 font-bold text-coosajo-blue" onchange="window.renderComparativa()"></select>
+                                </div>
+                                <div class="hidden md:flex w-2/12 justify-center">
+                                    <div class="w-12 h-12 rounded-full bg-coosajo-lightBlue text-coosajo-blue flex items-center justify-center font-bold text-xl shadow-inner border border-blue-100">VS</div>
+                                </div>
+                                <div class="w-full md:w-5/12">
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 text-center md:text-right">Período B (A Comparar)</label>
+                                    <select id="comp-period-2" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 font-bold text-coosajo-blue" onchange="window.renderComparativa()"></select>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm whitespace-nowrap min-w-[600px]">
+                                    <thead class="bg-coosajo-lightBlue text-coosajo-blue border-b border-blue-200">
+                                        <tr>
+                                            <th class="p-4 font-bold rounded-tl-lg">Métrica</th>
+                                            <th class="p-4 font-bold text-center" id="comp-label-1">Período A</th>
+                                            <th class="p-4 font-bold text-center" id="comp-label-2">Período B</th>
+                                            <th class="p-4 font-bold text-center rounded-tr-lg">Diferencia</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="comp-table-body" class="divide-y divide-gray-100">
+                                        <tr><td colspan="4" class="p-6 text-center text-gray-400 font-medium">Selecciona dos períodos válidos en los menús de arriba para comparar.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
                     <!-- VISTA: INGRESO MANUAL DE DATOS             -->
                     <!-- ========================================== -->
                     <div id="tab-ingreso" class="tab-content fade-in hidden space-y-6">
@@ -349,8 +399,12 @@
 
                             <div class="glass-card p-6 rounded-3xl">
                                 <h3 class="text-lg font-bold text-coosajo-blue border-b border-gray-100 pb-3 mb-5">2. Métricas Principales (Totales)</h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Seguidores</label><input type="number" id="form-followers" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Seguidores Totales</label><input type="number" id="form-followers" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-coosajo-green uppercase tracking-widest mb-2">Seg. Ganados</label><input type="number" id="form-gained" class="w-full p-3 rounded-xl border border-green-200 bg-green-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-red-500 uppercase tracking-widest mb-2">Seg. Perdidos</label><input type="number" id="form-lost" class="w-full p-3 rounded-xl border border-red-200 bg-red-50 outline-none"></div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                                     <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Impresiones</label><input type="number" id="form-impressions" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
                                     <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Interacciones</label><input type="number" id="form-interactions" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
                                     <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Engagement Rate</label><input type="number" step="0.01" id="form-engagement" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
@@ -418,15 +472,19 @@
 
         <!-- Mobile Bottom Navigation -->
         <div class="md:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-md shadow-[0_-10px_20px_rgba(0,0,0,0.05)] flex justify-around p-2 z-50 border-t border-gray-100 pb-safe">
-            <button id="mob-dashboard" class="mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/3 bg-coosajo-lightGreen/50">
+            <button id="mob-dashboard" class="mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/4 bg-coosajo-lightGreen/50">
                 <i class="fa-solid fa-chart-pie text-xl mb-1"></i>
                 <span class="text-[10px] font-bold">Dash</span>
             </button>
-            <button id="mob-reporte" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/3">
+            <button id="mob-reporte" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4">
                 <i class="fa-solid fa-star text-xl mb-1"></i>
                 <span class="text-[10px] font-bold">Top 10</span>
             </button>
-            <button id="mob-ingreso" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/3">
+            <button id="mob-comparativa" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4">
+                <i class="fa-solid fa-code-compare text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">VS</span>
+            </button>
+            <button id="mob-ingreso" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4">
                 <i class="fa-solid fa-keyboard text-xl mb-1"></i>
                 <span class="text-[10px] font-bold">Datos</span>
             </button>
@@ -458,7 +516,7 @@
 
             const initialData = {
                 "20 al 27 de Abril": {
-                    metrics: { followers: 56550, impressions: 486110, interactions: 18260, engagement: 82.67, posts: 53, views: 403010, reactions: 2472, clicks: 7396 },
+                    metrics: { followers: 56550, gained: 150, lost: 20, impressions: 486110, interactions: 18260, engagement: 82.67, posts: 53, views: 403010, reactions: 2472, clicks: 7396 },
                     daily: [63000, 58000, 59000, 61000, 44000, 75000, 87000],
                     notes: {
                         "note-impresiones": "El pico del sábado se debió a la Noche Familiar.",
@@ -652,12 +710,35 @@
             // 7. LÓGICA PRINCIPAL DEL DASHBOARD
             function updatePeriodDatalist() {
                 const list = document.getElementById('period-list');
+                const sel1 = document.getElementById('comp-period-1');
+                const sel2 = document.getElementById('comp-period-2');
+                
                 list.innerHTML = '';
-                Object.keys(appData).forEach(key => {
+                if(sel1) sel1.innerHTML = '<option value="">Seleccione Período A</option>';
+                if(sel2) sel2.innerHTML = '<option value="">Seleccione Período B</option>';
+                
+                const keys = Object.keys(appData);
+
+                keys.forEach(key => {
                     let opt = document.createElement('option');
                     opt.value = key;
                     list.appendChild(opt);
+
+                    if(sel1) { let o1 = document.createElement('option'); o1.value = key; o1.text = key; sel1.appendChild(o1); }
+                    if(sel2) { let o2 = document.createElement('option'); o2.value = key; o2.text = key; sel2.appendChild(o2); }
                 });
+
+                // Auto-seleccionar para comparativa si hay al menos 2 períodos guardados
+                if (sel1 && sel2 && keys.length > 0) {
+                    if (keys.length >= 2) {
+                        sel1.value = keys[keys.length - 2]; // El penúltimo ingresado
+                        sel2.value = keys[keys.length - 1]; // El último ingresado
+                    } else {
+                        sel1.value = keys[0];
+                        sel2.value = keys[0];
+                    }
+                    window.renderComparativa();
+                }
             }
 
             // Exponer al scope global para los onchange de los inputs
@@ -672,6 +753,13 @@
                 if (data) {
                     // KPIs
                     document.getElementById('val-followers').innerText = (data.metrics.followers >= 1000 ? (data.metrics.followers/1000).toFixed(2)+'K' : data.metrics.followers);
+                    
+                    const g = data.metrics.gained || 0;
+                    const l = data.metrics.lost || 0;
+                    document.getElementById('val-gained').innerText = g;
+                    document.getElementById('val-lost').innerText = l;
+                    document.getElementById('val-net').innerText = (g - l > 0 ? '+' : '') + (g - l);
+
                     document.getElementById('val-impressions').innerText = (data.metrics.impressions >= 1000 ? (data.metrics.impressions/1000).toFixed(2)+'K' : data.metrics.impressions);
                     document.getElementById('val-interactions').innerText = (data.metrics.interactions >= 1000 ? (data.metrics.interactions/1000).toFixed(2)+'K' : data.metrics.interactions);
                     document.getElementById('val-engagement').innerText = data.metrics.engagement;
@@ -690,8 +778,9 @@
                     renderTopPostsDisplay(data.topPosts);
 
                 } else {
-                    ['followers', 'impressions', 'interactions', 'engagement', 'posts', 'views', 'reactions', 'clicks'].forEach(id => {
-                        document.getElementById('val-' + id).innerText = "-";
+                    ['followers', 'impressions', 'interactions', 'engagement', 'posts', 'views', 'reactions', 'clicks', 'gained', 'lost', 'net'].forEach(id => {
+                        let el = document.getElementById('val-' + id);
+                        if(el) el.innerText = "-";
                     });
                     updateChartData([0,0,0,0,0,0,0]);
                     document.querySelectorAll('.note-area').forEach(el => el.value = "");
@@ -729,6 +818,8 @@
                 const data = appData[weekStr];
                 if (data && data.metrics) {
                     document.getElementById('form-followers').value = data.metrics.followers || '';
+                    document.getElementById('form-gained').value = data.metrics.gained || '';
+                    document.getElementById('form-lost').value = data.metrics.lost || '';
                     document.getElementById('form-impressions').value = data.metrics.impressions || '';
                     document.getElementById('form-interactions').value = data.metrics.interactions || '';
                     document.getElementById('form-engagement').value = data.metrics.engagement || '';
@@ -784,6 +875,8 @@
                 appData[weekToSave] = {
                     metrics: {
                         followers: Number(document.getElementById('form-followers').value) || 0,
+                        gained: Number(document.getElementById('form-gained').value) || 0,
+                        lost: Number(document.getElementById('form-lost').value) || 0,
                         impressions: Number(document.getElementById('form-impressions').value) || 0,
                         interactions: Number(document.getElementById('form-interactions').value) || 0,
                         engagement: Number(document.getElementById('form-engagement').value) || 0,
@@ -869,6 +962,64 @@
                 }
             }
 
+            // COMPARATIVA LOGICA
+            window.renderComparativa = function() {
+                const p1 = document.getElementById('comp-period-1').value;
+                const p2 = document.getElementById('comp-period-2').value;
+                const tbody = document.getElementById('comp-table-body');
+                
+                document.getElementById('comp-label-1').innerText = p1 || 'Período A';
+                document.getElementById('comp-label-2').innerText = p2 || 'Período B';
+
+                if(!p1 || !p2 || !appData[p1] || !appData[p2]) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400 font-medium">Selecciona dos períodos válidos en los menús de arriba para comparar.</td></tr>';
+                    return;
+                }
+
+                const m1 = appData[p1].metrics;
+                const m2 = appData[p2].metrics;
+
+                const compareKeys = [
+                    { label: 'Seguidores Totales', key: 'followers' },
+                    { label: 'Seguidores Ganados', key: 'gained' },
+                    { label: 'Seguidores Perdidos', key: 'lost', invertColor: true },
+                    { label: 'Crecimiento Neto (Ganados - Perdidos)', key: 'net' },
+                    { label: 'Impresiones', key: 'impressions' },
+                    { label: 'Interacciones', key: 'interactions' },
+                    { label: 'Engagement Rate', key: 'engagement' },
+                    { label: 'Posts Totales', key: 'posts' },
+                    { label: 'Visualizaciones', key: 'views' },
+                    { label: 'Reacciones', key: 'reactions' },
+                    { label: 'Clics', key: 'clicks' }
+                ];
+
+                tbody.innerHTML = '';
+                compareKeys.forEach(item => {
+                    let val1 = item.key === 'net' ? ((m1.gained||0) - (m1.lost||0)) : (m1[item.key] || 0);
+                    let val2 = item.key === 'net' ? ((m2.gained||0) - (m2.lost||0)) : (m2[item.key] || 0);
+                    
+                    let diff = val2 - val1;
+                    // Redondear a 2 decimales para el engagement
+                    if(item.key === 'engagement') diff = parseFloat(diff.toFixed(2));
+                    
+                    let diffText = diff > 0 ? `+${diff.toLocaleString()}` : diff.toLocaleString();
+                    
+                    // Lógica de colores de diferencia
+                    let colorClass = 'text-gray-500 bg-gray-50';
+                    if (diff > 0) colorClass = item.invertColor ? 'text-red-500 bg-red-50' : 'text-green-600 bg-green-50';
+                    else if (diff < 0) colorClass = item.invertColor ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+                            <td class="p-4 font-bold text-gray-600 border-r border-gray-100">${item.label}</td>
+                            <td class="p-4 text-center font-medium border-r border-gray-100">${val1.toLocaleString()}</td>
+                            <td class="p-4 text-center font-bold text-coosajo-blue border-r border-gray-100">${val2.toLocaleString()}</td>
+                            <td class="p-4 text-center"><span class="px-2 py-1 rounded font-bold ${colorClass}">${diffText}</span></td>
+                        </tr>
+                    `;
+                });
+            };
+
             // 10. UI Y NAVEGACIÓN
             window.switchTab = function(tabId) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -881,18 +1032,20 @@
                 if (activeBtn) activeBtn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl bg-coosajo-lightGreen text-coosajo-green transition-all shadow-sm border border-green-100";
 
                 document.querySelectorAll('.mob-btn').forEach(btn => {
-                    btn.className = "mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/3 transition-all";
+                    btn.className = "mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4 transition-all";
                 });
                 const activeMob = document.getElementById('mob-' + tabId);
-                if(activeMob) activeMob.className = "mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/3 bg-coosajo-lightGreen/50 transition-all";
+                if(activeMob) activeMob.className = "mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/4 bg-coosajo-lightGreen/50 transition-all";
             };
 
             document.getElementById('nav-dashboard').addEventListener('click', () => window.switchTab('dashboard'));
             document.getElementById('nav-reporte').addEventListener('click', () => window.switchTab('reporte'));
+            document.getElementById('nav-comparativa').addEventListener('click', () => window.switchTab('comparativa'));
             document.getElementById('nav-ingreso').addEventListener('click', () => window.switchTab('ingreso'));
             
             document.getElementById('mob-dashboard').addEventListener('click', () => window.switchTab('dashboard'));
             document.getElementById('mob-reporte').addEventListener('click', () => window.switchTab('reporte'));
+            document.getElementById('mob-comparativa').addEventListener('click', () => window.switchTab('comparativa'));
             document.getElementById('mob-ingreso').addEventListener('click', () => window.switchTab('ingreso'));
 
             function showToast(msg) {
