@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard & Reportes - COOSAJO R.L.</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Kalam:wght@400&display=swap" rel="stylesheet">
+
+    <!-- Configuración Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        handwriting: ['Kalam', 'cursive'], 
+                    },
+                    colors: {
+                        coosajo: {
+                            green: '#158e45',
+                            blue: '#172e59',
+                            lightGreen: '#e8f5ed',
+                            lightBlue: '#eef2f9',
+                            hoverGreen: '#127a3b'
+                        },
+                        note: '#fffbeb' 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .bg-gradient-main { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #158e45; }
+        
+        /* Premium Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border-color: rgba(21, 142, 69, 0.2);
+        }
+        
+        /* Textarea para Notas */
+        .note-area {
+            background-color: #fffdf0;
+            background-image: linear-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 100% 1.75rem;
+            line-height: 1.75rem;
+            border: 1px solid #fde68a;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+            resize: vertical;
+        }
+        .note-area:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+        }
+
+        .time-filter.active {
+            background-color: #158e45;
+            color: white;
+            box-shadow: 0 2px 4px rgba(21, 142, 69, 0.3);
+        }
+        
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .img-preview {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #f1f5f9;
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased h-screen flex flex-col overflow-hidden bg-gradient-main">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-coosajo-blue to-[#0e1d38] p-4 transition-opacity duration-500">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md transform transition-all">
+            <div class="flex justify-center mb-6">
+                <!-- Se usa el nombre del archivo con %20 para evitar errores de ruta -->
+                <img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" alt="COOSAJO Logo" class="h-16 object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-leaf text-coosajo-green text-5xl\'></i>'">
+            </div>
+            <h2 class="text-2xl font-extrabold text-coosajo-blue text-center mb-2">Iniciar Sesión</h2>
+            <p class="text-gray-500 text-sm text-center mb-8">Ingresa tus credenciales para acceder al Dashboard</p>
+            
+            <div id="login-error" class="hidden bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 border border-red-100 flex items-center gap-2">
+                <i class="fa-solid fa-circle-exclamation"></i> <span>Credenciales incorrectas</span>
+            </div>
+
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Usuario</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="login-user" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 focus:bg-white transition-colors" placeholder="Ej: sjemartinez">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Contraseña</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="password" id="login-pass" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 focus:bg-white transition-colors" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-coosajo-green to-green-600 hover:from-coosajo-hoverGreen hover:to-green-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 mt-4">
+                    Ingresar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- APP CONTENT -->
+    <div id="app-content" class="hidden flex-col h-full w-full">
+
+        <!-- Top Navigation -->
+        <nav class="bg-coosajo-blue text-white shadow-lg z-20 flex-shrink-0 relative">
+            <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-coosajo-green via-green-400 to-coosajo-blue"></div>
+            <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white p-1.5 rounded-lg shadow-md flex items-center justify-center">
+                            <img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" alt="COOSAJO Logo" class="h-6 sm:h-8 object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-leaf text-coosajo-green text-xl px-2\'></i>'">
+                        </div>
+                        <div>
+                            <span class="font-extrabold text-lg sm:text-xl tracking-tight hidden sm:inline">COOSAJO R.L.</span>
+                            <span class="text-coosajo-green font-medium text-xs sm:text-sm sm:ml-1 bg-white/10 px-2 py-0.5 rounded-full border border-white/10">es MICOOPE</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 sm:gap-4">
+                        <div class="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg border border-white/20 shadow-inner cursor-text">
+                            <i class="fa-solid fa-calendar-days text-coosajo-green drop-shadow-md"></i>
+                            <span class="text-sm font-medium hidden md:inline text-gray-200">Período:</span>
+                            <input type="text" id="global-week-selector" list="period-list" class="bg-transparent border-none text-white text-sm font-bold focus:outline-none focus:ring-0 w-32 sm:w-48 placeholder-gray-400" placeholder="Ej: 20-27 Abr">
+                            <datalist id="period-list"></datalist>
+                        </div>
+                        <div id="btn-logout" title="Cerrar Sesión" class="user-initial-badge w-9 h-9 rounded-full bg-gradient-to-br from-coosajo-green to-coosajo-hoverGreen flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/50 cursor-pointer hover:scale-105 transition-transform">
+                            E
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- App Container -->
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Sidebar -->
+            <aside class="w-64 bg-white/80 backdrop-blur-md border-r border-gray-200 hidden md:flex flex-col flex-shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+                <div class="p-5 overflow-y-auto h-full">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2">Visualización</p>
+                    <nav class="space-y-2">
+                        <button id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl bg-coosajo-lightGreen text-coosajo-green transition-all shadow-sm border border-green-100">
+                            <i class="fa-solid fa-chart-pie w-5 text-lg"></i> Dashboard Analítico
+                        </button>
+                        <button id="nav-reporte" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-500 hover:bg-gray-50 hover:text-coosajo-blue transition-all border border-transparent">
+                            <i class="fa-solid fa-star w-5 text-lg text-yellow-500"></i> Top 10 Posts
+                        </button>
+                    </nav>
+
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2 mt-8">Gestión de Datos</p>
+                    <nav class="space-y-2">
+                        <button id="nav-ingreso" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-500 hover:bg-gray-50 hover:text-coosajo-blue transition-all border border-transparent">
+                            <i class="fa-solid fa-pen-to-square w-5 text-lg"></i> Ingreso Manual
+                        </button>
+                        <button id="btn-clear-data" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-red-400 hover:bg-red-50 hover:text-red-600 transition-all mt-4 border border-transparent">
+                            <i class="fa-solid fa-trash-can w-5 text-lg"></i> Borrar Historial
+                        </button>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- Main Workspace -->
+            <main class="flex-1 overflow-y-auto relative w-full">
+                <div class="p-4 md:p-8 max-w-7xl mx-auto pb-24 md:pb-8">
+                    
+                    <!-- ========================================== -->
+                    <!-- VISTA: DASHBOARD                           -->
+                    <!-- ========================================== -->
+                    <div id="tab-dashboard" class="tab-content fade-in block space-y-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 gap-4">
+                            <div>
+                                <h2 class="text-3xl font-extrabold text-coosajo-blue tracking-tight drop-shadow-sm">Rendimiento Social</h2>
+                                <p class="text-gray-500 text-sm mt-1" id="dash-week-label">Mostrando datos del período seleccionado.</p>
+                            </div>
+                        </div>
+
+                        <!-- KPI Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightBlue rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 relative z-10">Comunidad Total</p>
+                                <h3 class="text-4xl font-black text-coosajo-blue relative z-10" id="val-followers">0</h3>
+                            </div>
+                            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightGreen rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 relative z-10">Impresiones</p>
+                                <h3 class="text-4xl font-black text-coosajo-green relative z-10" id="val-impressions">0</h3>
+                            </div>
+                            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightBlue rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 relative z-10">Interacciones</p>
+                                <h3 class="text-4xl font-black text-coosajo-blue relative z-10" id="val-interactions">0</h3>
+                            </div>
+                            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group border-b-4 border-b-coosajo-green">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightGreen rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 relative z-10">Engagement Rate</p>
+                                <h3 class="text-4xl font-black text-gray-800 relative z-10" id="val-engagement">0</h3>
+                            </div>
+                        </div>
+
+                        <!-- Gráfico + Notas -->
+                        <div class="glass-card p-6 rounded-3xl mt-6">
+                            <h3 class="text-xl font-bold text-coosajo-blue flex items-center gap-2 mb-6">
+                                <span class="bg-coosajo-lightGreen p-2 rounded-lg text-coosajo-green"><i class="fa-solid fa-chart-area"></i></span>
+                                Evolución Diaria
+                            </h3>
+                            <div class="h-72 w-full relative mb-6">
+                                <canvas id="mainEvolucionChart"></canvas>
+                            </div>
+                            
+                            <div class="bg-yellow-50/50 rounded-2xl p-5 border border-yellow-100 shadow-inner">
+                                <div class="flex items-center gap-2 mb-3 text-yellow-700 font-bold text-sm">
+                                    <i class="fa-solid fa-thumbtack text-yellow-500"></i> Apuntes del Rendimiento Global
+                                </div>
+                                <textarea id="note-impresiones" class="note-area w-full rounded-xl p-4 text-gray-700 font-handwriting text-xl" rows="3" placeholder="Escribe aquí por qué crees que subieron o bajaron las métricas en general..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Métricas Secundarias + Notas -->
+                        <div class="glass-card p-6 rounded-3xl">
+                            <h3 class="text-xl font-bold text-coosajo-blue mb-6 flex items-center gap-2">
+                                <span class="bg-coosajo-lightBlue p-2 rounded-lg text-coosajo-blue"><i class="fa-solid fa-heart"></i></span>
+                                Desglose de Impacto
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pb-6">
+                                <div class="text-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                                    <p class="text-3xl font-black text-coosajo-blue mb-1" id="val-posts">0</p>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Posts Realizados</p>
+                                </div>
+                                <div class="text-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm border-b-2 border-b-coosajo-green">
+                                    <p class="text-3xl font-black text-coosajo-green mb-1" id="val-views">0</p>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Visualizaciones</p>
+                                </div>
+                                <div class="text-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                                    <p class="text-3xl font-black text-coosajo-blue mb-1" id="val-reactions">0</p>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Reacciones</p>
+                                </div>
+                                <div class="text-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm border-b-2 border-b-coosajo-green">
+                                    <p class="text-3xl font-black text-coosajo-green mb-1" id="val-clicks">0</p>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Clics en Enlace</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-50/50 rounded-2xl p-5 border border-yellow-100 shadow-inner">
+                                <div class="flex items-center gap-2 mb-3 text-yellow-700 font-bold text-sm">
+                                    <i class="fa-solid fa-thumbtack text-yellow-500"></i> Análisis de Interacción
+                                </div>
+                                <textarea id="note-interaccion" class="note-area w-full rounded-xl p-4 text-gray-700 font-handwriting text-xl" rows="3" placeholder="Anota comentarios sobre el nivel de reacciones, clics o compartidos..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- VISTA: TOP 10 POSTS                        -->
+                    <!-- ========================================== -->
+                    <div id="tab-reporte" class="tab-content fade-in hidden space-y-6">
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-coosajo-blue tracking-tight">Top 10 Mejores Publicaciones</h2>
+                            <p class="text-gray-500 text-sm mt-1">El contenido más exitoso del período seleccionado.</p>
+                        </div>
+
+                        <!-- Grid del Top 10 -->
+                        <div id="top-posts-display-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+
+                        <!-- Notas Generales de Contenido -->
+                        <div class="glass-card rounded-3xl p-6 md:p-8 mt-6">
+                            <div class="flex items-center gap-3 mb-4 text-coosajo-blue font-bold text-xl">
+                                <div class="bg-yellow-100 p-3 rounded-full text-yellow-600"><i class="fa-solid fa-lightbulb"></i></div>
+                                Aprendizajes del Período
+                            </div>
+                            <p class="text-sm text-gray-500 mb-6 pl-2">Utiliza este espacio para documentar qué tipo de contenido funcionó mejor.</p>
+                            <div class="bg-white p-2 rounded-2xl border border-yellow-200 shadow-sm">
+                                <textarea id="note-contenido" class="note-area w-full rounded-xl p-6 text-gray-800 font-handwriting text-2xl leading-relaxed" rows="5" placeholder="Ej: Los videos cortos tuvieron un 50% más de retención..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- VISTA: INGRESO MANUAL DE DATOS             -->
+                    <!-- ========================================== -->
+                    <div id="tab-ingreso" class="tab-content fade-in hidden space-y-6">
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-coosajo-blue tracking-tight">Ingreso de Datos</h2>
+                            <p class="text-gray-500 text-sm mt-1">Digita la información obtenida desde Metricool.</p>
+                        </div>
+
+                        <form id="manual-data-form" class="space-y-6">
+                            
+                            <div class="bg-gradient-to-r from-coosajo-blue to-[#1a3a70] text-white p-6 rounded-3xl shadow-md relative overflow-hidden">
+                                <i class="fa-solid fa-keyboard absolute -right-4 -bottom-4 text-7xl opacity-10"></i>
+                                <label class="block font-bold mb-3 text-lg relative z-10">1. Nombra el Período a Ingresar/Editar:</label>
+                                <div class="relative z-10">
+                                    <input type="text" id="form-week" list="period-list" required class="w-full md:w-80 p-3.5 rounded-xl border-none text-gray-800 font-bold focus:ring-4 focus:ring-coosajo-green/50 outline-none shadow-inner" placeholder="Ej: 20 al 26 de Abril">
+                                </div>
+                            </div>
+
+                            <div class="glass-card p-6 rounded-3xl">
+                                <h3 class="text-lg font-bold text-coosajo-blue border-b border-gray-100 pb-3 mb-5">2. Métricas Principales (Totales)</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Seguidores</label><input type="number" id="form-followers" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Impresiones</label><input type="number" id="form-impressions" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Interacciones</label><input type="number" id="form-interactions" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Engagement Rate</label><input type="number" step="0.01" id="form-engagement" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card p-6 rounded-3xl">
+                                <h3 class="text-lg font-bold text-coosajo-blue border-b border-gray-100 pb-3 mb-5">3. Detalles de Interacción</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Posts Totales</label><input type="number" id="form-posts" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Visualizaciones</label><input type="number" id="form-views" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Reacciones</label><input type="number" id="form-reactions" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Clics</label><input type="number" id="form-clicks" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card p-6 rounded-3xl">
+                                <h3 class="text-lg font-bold text-coosajo-blue border-b border-gray-100 pb-3 mb-5">4. Datos Diarios (Gráfica)</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-7 gap-3">
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Lunes</label><input type="number" id="d1" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Martes</label><input type="number" id="d2" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Miércoles</label><input type="number" id="d3" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Jueves</label><input type="number" id="d4" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Viernes</label><input type="number" id="d5" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Sábado</label><input type="number" id="d6" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Domingo</label><input type="number" id="d7" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                </div>
+                            </div>
+
+                            <!-- TOP 10 POSTS (NUEVO) -->
+                            <div class="glass-card p-6 rounded-3xl overflow-hidden">
+                                <h3 class="text-lg font-bold text-coosajo-blue border-b border-gray-100 pb-3 mb-5">5. Top 10 Posts (Métricas y Foto)</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                                        <thead class="bg-gray-50 text-gray-600">
+                                            <tr>
+                                                <th class="p-3 font-semibold rounded-tl-lg">#</th>
+                                                <th class="p-3 font-semibold">Imagen</th>
+                                                <th class="p-3 font-semibold">Título / Resumen</th>
+                                                <th class="p-3 font-semibold">Alcance</th>
+                                                <th class="p-3 font-semibold">Impresiones</th>
+                                                <th class="p-3 font-semibold">Interacciones</th>
+                                                <th class="p-3 font-semibold rounded-tr-lg">Engagement</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="top-posts-input-body" class="divide-y divide-gray-100">
+                                            <!-- Se llena dinámicamente con JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-3"><i class="fa-solid fa-circle-info"></i> Las imágenes se comprimen automáticamente para no saturar el navegador.</p>
+                            </div>
+
+                            <div class="flex justify-end pt-4 pb-10">
+                                <button type="button" id="btn-save-data" class="bg-gradient-to-r from-coosajo-green to-green-600 hover:from-coosajo-hoverGreen hover:to-green-700 text-white font-bold py-4 px-10 rounded-2xl shadow-[0_10px_20px_rgba(21,142,69,0.3)] transition-all transform hover:-translate-y-1 flex items-center gap-3 text-lg">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar Período Completo
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+
+        <!-- Mobile Bottom Navigation -->
+        <div class="md:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-md shadow-[0_-10px_20px_rgba(0,0,0,0.05)] flex justify-around p-2 z-50 border-t border-gray-100 pb-safe">
+            <button id="mob-dashboard" class="mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/3 bg-coosajo-lightGreen/50">
+                <i class="fa-solid fa-chart-pie text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Dash</span>
+            </button>
+            <button id="mob-reporte" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/3">
+                <i class="fa-solid fa-star text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Top 10</span>
+            </button>
+            <button id="mob-ingreso" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/3">
+                <i class="fa-solid fa-keyboard text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Datos</span>
+            </button>
+        </div>
+
+        <!-- Toast de Éxito -->
+        <div id="toast" class="fixed top-20 right-5 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-4">
+            <div class="bg-green-500 rounded-full w-10 h-10 flex items-center justify-center shadow-inner"><i class="fa-solid fa-check text-white text-lg"></i></div>
+            <div>
+                <p class="font-bold text-sm tracking-wide">¡Guardado Exitoso!</p>
+                <p class="text-xs text-gray-400 mt-0.5" id="toast-msg">Los datos han sido registrados.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- SCRIPT PRINCIPAL (Todo el JS encapsulado correctamente) -->
+    <!-- ======================================================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. BASE DE DATOS Y USUARIOS
+            const usersDB = {
+                'sjemartinez': { name: 'Elián Martínez', pass: 'Coosajo2041' },
+                'sjmsalazar': { name: 'Marco Salazar', pass: 'Coosajo2041' },
+                'sjnramirez': { name: 'Noé Ramiréz', pass: 'Coosajo2041' }
+            };
+
+            const initialData = {
+                "20 al 27 de Abril": {
+                    metrics: { followers: 56550, impressions: 486110, interactions: 18260, engagement: 82.67, posts: 53, views: 403010, reactions: 2472, clicks: 7396 },
+                    daily: [63000, 58000, 59000, 61000, 44000, 75000, 87000],
+                    notes: {
+                        "note-impresiones": "El pico del sábado se debió a la Noche Familiar.",
+                        "note-interaccion": "Las reacciones subieron por el álbum coleccionable.",
+                        "note-contenido": "Las fotos con familias generan 3 veces más engagement."
+                    },
+                    topPosts: Array.from({length: 10}, (_, i) => ({
+                        title: i===0 ? "Noche Familiar COOSAJO" : "", 
+                        reach: i===0 ? 50000 : 0, 
+                        impressions: i===0 ? 65000 : 0, 
+                        interactions: i===0 ? 3200 : 0, 
+                        engagement: i===0 ? 6.4 : 0, 
+                        image: ""
+                    }))
+                }
+            };
+
+            let appData = JSON.parse(localStorage.getItem('coosajo_dashboard_data')) || initialData;
+            let currentWeek = Object.keys(appData).length > 0 ? Object.keys(appData)[0] : "";
+            let mainChart = null;
+
+            // 2. ELEMENTOS DEL DOM
+            const loginScreen = document.getElementById('login-screen');
+            const appContent = document.getElementById('app-content');
+            const loginForm = document.getElementById('login-form');
+            const loginError = document.getElementById('login-error');
+            const btnLogout = document.getElementById('btn-logout');
+            const btnSaveData = document.getElementById('btn-save-data');
+            const btnClearData = document.getElementById('btn-clear-data');
+            const inputGlobalWeek = document.getElementById('global-week-selector');
+            const inputFormWeek = document.getElementById('form-week');
+
+            // 3. SISTEMA DE AUTENTICACIÓN
+            function checkAuth() {
+                const loggedUser = sessionStorage.getItem('coosajo_logged_user');
+                if(loggedUser) {
+                    showApp(JSON.parse(loggedUser));
+                } else {
+                    loginScreen.classList.remove('hidden');
+                    appContent.classList.add('hidden');
+                }
+            }
+
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const userBox = document.getElementById('login-user').value.trim();
+                const passBox = document.getElementById('login-pass').value.trim();
+
+                if(usersDB[userBox] && usersDB[userBox].pass === passBox) {
+                    const userObj = { username: userBox, name: usersDB[userBox].name };
+                    sessionStorage.setItem('coosajo_logged_user', JSON.stringify(userObj));
+                    loginError.classList.add('hidden');
+                    loginForm.reset();
+                    showApp(userObj);
+                } else {
+                    loginError.classList.remove('hidden');
+                }
+            });
+
+            btnLogout.addEventListener('click', () => {
+                sessionStorage.removeItem('coosajo_logged_user');
+                loginScreen.classList.remove('hidden');
+                appContent.classList.add('hidden');
+                appContent.classList.remove('flex');
+            });
+
+            function showApp(user) {
+                loginScreen.classList.add('hidden');
+                appContent.classList.remove('hidden');
+                appContent.classList.add('flex');
+                
+                const names = user.name.split(' ');
+                const initials = names.length > 1 ? (names[0][0] + names[1][0]).toUpperCase() : names[0][0].toUpperCase();
+                document.querySelectorAll('.user-initial-badge').forEach(el => {
+                    el.innerText = initials;
+                    el.title = `Cerrar Sesión (${user.name})`;
+                });
+                
+                initAppData();
+            }
+
+            // 4. INICIALIZACIÓN DE DATOS Y UI
+            function initAppData() {
+                Chart.defaults.font.family = "'Inter', sans-serif";
+                renderTopPostsInput();
+                updatePeriodDatalist();
+                
+                if(currentWeek) {
+                    inputGlobalWeek.value = currentWeek;
+                    inputFormWeek.value = currentWeek;
+                    if(!mainChart) initChart();
+                    loadWeekData(currentWeek);
+                }
+            }
+
+            // 5. RENDERIZADO DINÁMICO (TOP 10 INPUT)
+            function renderTopPostsInput() {
+                const tbody = document.getElementById('top-posts-input-body');
+                tbody.innerHTML = '';
+                for(let i=0; i<10; i++) {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-gray-50";
+                    tr.innerHTML = `
+                        <td class="p-3 text-gray-400 font-bold">${i+1}</td>
+                        <td class="p-3">
+                            <div class="flex items-center gap-2">
+                                <img id="p-img-prev-${i}" class="img-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>">
+                                <input type="file" accept="image/*" class="text-[10px] w-24" onchange="compressAndPreview(this, ${i})">
+                                <input type="hidden" id="p-img-data-${i}">
+                            </div>
+                        </td>
+                        <td class="p-3"><input type="text" id="p-title-${i}" class="w-48 p-2 border border-gray-200 rounded outline-none text-xs" placeholder="Título corto"></td>
+                        <td class="p-3"><input type="number" id="p-reach-${i}" class="w-24 p-2 border border-gray-200 rounded outline-none text-xs" placeholder="Alcance"></td>
+                        <td class="p-3"><input type="number" id="p-imp-${i}" class="w-24 p-2 border border-gray-200 rounded outline-none text-xs" placeholder="Impres."></td>
+                        <td class="p-3"><input type="number" id="p-int-${i}" class="w-24 p-2 border border-gray-200 rounded outline-none text-xs" placeholder="Interac."></td>
+                        <td class="p-3"><input type="number" step="0.01" id="p-eng-${i}" class="w-20 p-2 border border-gray-200 rounded outline-none text-xs" placeholder="Eng. %"></td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            }
+
+            // Exponer función de compresión al scope global para el onchange del HTML dinámico
+            window.compressAndPreview = function(input, index) {
+                const file = input.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 250; // Comprimir a 250px ancho
+                        const scale = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        const base64 = canvas.toDataURL('image/jpeg', 0.6); // 60% calidad
+                        document.getElementById(`p-img-prev-${index}`).src = base64;
+                        document.getElementById(`p-img-data-${index}`).value = base64;
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+
+            // 6. RENDERIZADO DINÁMICO (TOP 10 DISPLAY)
+            function renderTopPostsDisplay(posts) {
+                const grid = document.getElementById('top-posts-display-grid');
+                grid.innerHTML = '';
+                if(!posts || posts.length === 0) return;
+
+                posts.forEach((p, i) => {
+                    if(!p.title && !p.reach && !p.impressions) return; // Saltar vacíos
+
+                    const imgSrc = p.image || `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='1'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>`;
+
+                    const html = `
+                    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition">
+                        <div class="w-full sm:w-1/3 bg-gray-50 flex items-center justify-center p-2 min-h-[120px]">
+                            <img src="${imgSrc}" class="w-full h-full max-h-32 object-contain rounded-lg shadow-sm">
+                        </div>
+                        <div class="p-4 w-full sm:w-2/3 flex flex-col justify-between">
+                            <div>
+                                <span class="bg-coosajo-lightGreen text-coosajo-green text-[10px] font-bold px-2 py-0.5 rounded-full mb-2 inline-block">Top #${i+1}</span>
+                                <h4 class="font-bold text-coosajo-blue text-sm leading-tight mb-3">${p.title || 'Post sin título'}</h4>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-auto">
+                                <div class="bg-gray-50 rounded p-2 text-center border border-gray-100">
+                                    <p class="text-[9px] text-gray-500 uppercase font-bold">Alcance</p>
+                                    <p class="font-black text-gray-800 text-sm">${Number(p.reach).toLocaleString()}</p>
+                                </div>
+                                <div class="bg-gray-50 rounded p-2 text-center border border-gray-100">
+                                    <p class="text-[9px] text-gray-500 uppercase font-bold">Impresiones</p>
+                                    <p class="font-black text-gray-800 text-sm">${Number(p.impressions).toLocaleString()}</p>
+                                </div>
+                                <div class="bg-gray-50 rounded p-2 text-center border border-gray-100">
+                                    <p class="text-[9px] text-gray-500 uppercase font-bold">Interacciones</p>
+                                    <p class="font-black text-coosajo-blue text-sm">${Number(p.interactions).toLocaleString()}</p>
+                                </div>
+                                <div class="bg-coosajo-lightGreen rounded p-2 text-center border border-green-100">
+                                    <p class="text-[9px] text-coosajo-green uppercase font-bold">Eng.</p>
+                                    <p class="font-black text-coosajo-green text-sm">${p.engagement}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                    grid.insertAdjacentHTML('beforeend', html);
+                });
+            }
+
+            // 7. LÓGICA PRINCIPAL DEL DASHBOARD
+            function updatePeriodDatalist() {
+                const list = document.getElementById('period-list');
+                list.innerHTML = '';
+                Object.keys(appData).forEach(key => {
+                    let opt = document.createElement('option');
+                    opt.value = key;
+                    list.appendChild(opt);
+                });
+            }
+
+            // Exponer al scope global para los onchange de los inputs
+            window.loadWeekData = function(weekStr) {
+                currentWeek = weekStr;
+                inputGlobalWeek.value = weekStr; 
+                inputFormWeek.value = weekStr; 
+                document.getElementById('dash-week-label').innerText = `Mostrando datos de: ${weekStr}`;
+
+                const data = appData[weekStr];
+
+                if (data) {
+                    // KPIs
+                    document.getElementById('val-followers').innerText = (data.metrics.followers >= 1000 ? (data.metrics.followers/1000).toFixed(2)+'K' : data.metrics.followers);
+                    document.getElementById('val-impressions').innerText = (data.metrics.impressions >= 1000 ? (data.metrics.impressions/1000).toFixed(2)+'K' : data.metrics.impressions);
+                    document.getElementById('val-interactions').innerText = (data.metrics.interactions >= 1000 ? (data.metrics.interactions/1000).toFixed(2)+'K' : data.metrics.interactions);
+                    document.getElementById('val-engagement').innerText = data.metrics.engagement;
+                    document.getElementById('val-posts').innerText = data.metrics.posts;
+                    document.getElementById('val-views').innerText = (data.metrics.views >= 1000 ? (data.metrics.views/1000).toFixed(2)+'K' : data.metrics.views);
+                    document.getElementById('val-reactions').innerText = data.metrics.reactions.toLocaleString();
+                    document.getElementById('val-clicks').innerText = data.metrics.clicks.toLocaleString();
+
+                    updateChartData(data.daily);
+
+                    // SINCRONIZAR NOTAS A LA SEMANA SELECCIONADA
+                    document.getElementById('note-impresiones').value = data.notes["note-impresiones"] || "";
+                    document.getElementById('note-interaccion').value = data.notes["note-interaccion"] || "";
+                    document.getElementById('note-contenido').value = data.notes["note-contenido"] || "";
+
+                    renderTopPostsDisplay(data.topPosts);
+
+                } else {
+                    ['followers', 'impressions', 'interactions', 'engagement', 'posts', 'views', 'reactions', 'clicks'].forEach(id => {
+                        document.getElementById('val-' + id).innerText = "-";
+                    });
+                    updateChartData([0,0,0,0,0,0,0]);
+                    document.querySelectorAll('.note-area').forEach(el => el.value = "");
+                    renderTopPostsDisplay([]);
+                }
+                
+                loadFormForWeek(weekStr);
+            }
+
+            // SINCRONIZACIÓN DE NOTAS EN TIEMPO REAL
+            window.saveNotes = function() {
+                if (!currentWeek) return;
+                if (!appData[currentWeek]) {
+                    appData[currentWeek] = { metrics: {}, daily: [], notes: {}, topPosts: [] };
+                    updatePeriodDatalist(); 
+                }
+                
+                appData[currentWeek].notes["note-impresiones"] = document.getElementById('note-impresiones').value;
+                appData[currentWeek].notes["note-interaccion"] = document.getElementById('note-interaccion').value;
+                appData[currentWeek].notes["note-contenido"] = document.getElementById('note-contenido').value;
+                
+                localStorage.setItem('coosajo_dashboard_data', JSON.stringify(appData));
+            }
+
+            // Añadir event listeners a textareas de notas
+            document.querySelectorAll('.note-area').forEach(textarea => {
+                textarea.addEventListener('input', window.saveNotes);
+            });
+
+            inputGlobalWeek.addEventListener('change', (e) => window.loadWeekData(e.target.value));
+            inputFormWeek.addEventListener('change', (e) => loadFormForWeek(e.target.value));
+
+            // 8. LÓGICA DEL FORMULARIO
+            function loadFormForWeek(weekStr) {
+                const data = appData[weekStr];
+                if (data && data.metrics) {
+                    document.getElementById('form-followers').value = data.metrics.followers || '';
+                    document.getElementById('form-impressions').value = data.metrics.impressions || '';
+                    document.getElementById('form-interactions').value = data.metrics.interactions || '';
+                    document.getElementById('form-engagement').value = data.metrics.engagement || '';
+                    document.getElementById('form-posts').value = data.metrics.posts || '';
+                    document.getElementById('form-views').value = data.metrics.views || '';
+                    document.getElementById('form-reactions').value = data.metrics.reactions || '';
+                    document.getElementById('form-clicks').value = data.metrics.clicks || '';
+                    for(let i=1; i<=7; i++) document.getElementById('d'+i).value = data.daily[i-1] || 0;
+                    
+                    // Cargar Top 10 en Form
+                    const posts = data.topPosts || [];
+                    for(let i=0; i<10; i++) {
+                        const p = posts[i] || {};
+                        document.getElementById(`p-title-${i}`).value = p.title || '';
+                        document.getElementById(`p-reach-${i}`).value = p.reach || '';
+                        document.getElementById(`p-imp-${i}`).value = p.impressions || '';
+                        document.getElementById(`p-int-${i}`).value = p.interactions || '';
+                        document.getElementById(`p-eng-${i}`).value = p.engagement || '';
+                        document.getElementById(`p-img-data-${i}`).value = p.image || '';
+                        
+                        const defaultImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>";
+                        document.getElementById(`p-img-prev-${i}`).src = p.image ? p.image : defaultImg;
+                    }
+                } else {
+                    document.getElementById('manual-data-form').reset();
+                    document.getElementById('form-week').value = weekStr;
+                    for(let i=0; i<10; i++) {
+                        document.getElementById(`p-img-prev-${i}`).src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>";
+                        document.getElementById(`p-img-data-${i}`).value = "";
+                    }
+                }
+            }
+
+            btnSaveData.addEventListener('click', () => {
+                const weekToSave = inputFormWeek.value.trim();
+                if(!weekToSave) { alert("Por favor asigna un nombre al período (Ej: 20-27 Abr)."); return; }
+
+                const existingNotes = appData[weekToSave] ? appData[weekToSave].notes : {};
+                
+                // Recopilar Top 10
+                const topPostsArray = [];
+                for(let i=0; i<10; i++) {
+                    topPostsArray.push({
+                        title: document.getElementById(`p-title-${i}`).value,
+                        reach: Number(document.getElementById(`p-reach-${i}`).value) || 0,
+                        impressions: Number(document.getElementById(`p-imp-${i}`).value) || 0,
+                        interactions: Number(document.getElementById(`p-int-${i}`).value) || 0,
+                        engagement: Number(document.getElementById(`p-eng-${i}`).value) || 0,
+                        image: document.getElementById(`p-img-data-${i}`).value
+                    });
+                }
+
+                appData[weekToSave] = {
+                    metrics: {
+                        followers: Number(document.getElementById('form-followers').value) || 0,
+                        impressions: Number(document.getElementById('form-impressions').value) || 0,
+                        interactions: Number(document.getElementById('form-interactions').value) || 0,
+                        engagement: Number(document.getElementById('form-engagement').value) || 0,
+                        posts: Number(document.getElementById('form-posts').value) || 0,
+                        views: Number(document.getElementById('form-views').value) || 0,
+                        reactions: Number(document.getElementById('form-reactions').value) || 0,
+                        clicks: Number(document.getElementById('form-clicks').value) || 0
+                    },
+                    daily: [
+                        Number(document.getElementById('d1').value)||0, Number(document.getElementById('d2').value)||0,
+                        Number(document.getElementById('d3').value)||0, Number(document.getElementById('d4').value)||0,
+                        Number(document.getElementById('d5').value)||0, Number(document.getElementById('d6').value)||0,
+                        Number(document.getElementById('d7').value)||0
+                    ],
+                    notes: existingNotes,
+                    topPosts: topPostsArray
+                };
+
+                localStorage.setItem('coosajo_dashboard_data', JSON.stringify(appData));
+                updatePeriodDatalist(); 
+                
+                if(weekToSave === currentWeek || currentWeek === "") {
+                    window.loadWeekData(weekToSave);
+                }
+
+                showToast(`Datos guardados: ${weekToSave}`);
+                window.switchTab('dashboard'); 
+            });
+
+            btnClearData.addEventListener('click', () => {
+                if(confirm("¿Estás seguro de borrar todo el historial? Esto no se puede deshacer.")) {
+                    appData = {};
+                    localStorage.removeItem('coosajo_dashboard_data');
+                    updatePeriodDatalist();
+                    inputGlobalWeek.value = "";
+                    window.loadWeekData("");
+                    showToast("Historial eliminado completamente.");
+                }
+            });
+
+            // 9. GRÁFICOS
+            function initChart() {
+                const ctx = document.getElementById('mainEvolucionChart').getContext('2d');
+                let gradientGreen = ctx.createLinearGradient(0, 0, 0, 300);
+                gradientGreen.addColorStop(0, 'rgba(21, 142, 69, 0.5)');
+                gradientGreen.addColorStop(1, 'rgba(21, 142, 69, 0.0)');
+
+                mainChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                        datasets: [{
+                            label: 'Impresiones',
+                            data: [0,0,0,0,0,0,0],
+                            borderColor: '#158e45',
+                            backgroundColor: gradientGreen,
+                            borderWidth: 4,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#158e45',
+                            pointBorderWidth: 3,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            fill: true,
+                            tension: 0.4 
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#172e59', padding: 12, cornerRadius: 8 } },
+                        scales: {
+                            y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(0,0,0,0.03)' } },
+                            x: { grid: { display: false }, border: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            function updateChartData(dailyData) {
+                if(mainChart) {
+                    mainChart.data.datasets[0].data = dailyData;
+                    mainChart.update();
+                }
+            }
+
+            // 10. UI Y NAVEGACIÓN
+            window.switchTab = function(tabId) {
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+                document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-500 hover:bg-gray-50 hover:text-coosajo-blue transition-all border border-transparent";
+                });
+                const activeBtn = document.getElementById('nav-' + tabId);
+                if (activeBtn) activeBtn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl bg-coosajo-lightGreen text-coosajo-green transition-all shadow-sm border border-green-100";
+
+                document.querySelectorAll('.mob-btn').forEach(btn => {
+                    btn.className = "mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/3 transition-all";
+                });
+                const activeMob = document.getElementById('mob-' + tabId);
+                if(activeMob) activeMob.className = "mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/3 bg-coosajo-lightGreen/50 transition-all";
+            };
+
+            document.getElementById('nav-dashboard').addEventListener('click', () => window.switchTab('dashboard'));
+            document.getElementById('nav-reporte').addEventListener('click', () => window.switchTab('reporte'));
+            document.getElementById('nav-ingreso').addEventListener('click', () => window.switchTab('ingreso'));
+            
+            document.getElementById('mob-dashboard').addEventListener('click', () => window.switchTab('dashboard'));
+            document.getElementById('mob-reporte').addEventListener('click', () => window.switchTab('reporte'));
+            document.getElementById('mob-ingreso').addEventListener('click', () => window.switchTab('ingreso'));
+
+            function showToast(msg) {
+                const toast = document.getElementById('toast');
+                document.getElementById('toast-msg').innerText = msg;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3500);
+            }
+
+            // INICIAR LA APLICACIÓN VALIDANDO SESIÓN
+            checkAuth();
+        });
+    </script>
+</body>
+</html>
