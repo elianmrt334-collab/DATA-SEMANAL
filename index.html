@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Analítico - COOSAJO R.L.</title>
+    <title>Dashboard & Reportes - COOSAJO R.L.</title>
     
-    <!-- Frameworks y Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -26,7 +25,8 @@
                             lightGreen: '#e8f5ed',
                             lightBlue: '#eef2f9',
                             hoverGreen: '#127a3b'
-                        }
+                        },
+                        note: '#fffbeb' 
                     }
                 }
             }
@@ -34,16 +34,15 @@
     </script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .bg-gradient-main { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
-        }
-        .sidebar-active {
-            background-color: #158e45;
-            color: white !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
         }
         .note-area {
             background-color: #fffdf0;
@@ -51,330 +50,265 @@
             background-size: 100% 1.75rem;
             line-height: 1.75rem;
             border: 1px solid #fde68a;
+            resize: vertical;
         }
-        /* Animaciones */
-        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .nav-btn.active {
+            background-color: #158e45;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(21, 142, 69, 0.2);
         }
     </style>
 </head>
-<body class="text-gray-800 antialiased h-screen flex overflow-hidden">
+<body class="text-gray-800 antialiased h-screen flex flex-col overflow-hidden bg-gradient-main">
 
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-coosajo-blue p-4">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-coosajo-blue to-[#0e1d38] p-4 transition-opacity duration-500">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md transform transition-all">
             <div class="flex justify-center mb-6">
-                <img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" alt="Logo" class="h-16" onerror="this.outerHTML='<i class=\'fa-solid fa-leaf text-coosajo-green text-5xl\'></i>'">
+                <img src="LOGO COOSAJO SIN ESLOGAN.png" alt="COOSAJO Logo" class="h-16 object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-leaf text-coosajo-green text-5xl\'></i>'">
             </div>
-            <h2 class="text-2xl font-bold text-coosajo-blue text-center mb-6">Panel de Control</h2>
-            <form id="login-form" class="space-y-4">
-                <input type="text" id="login-user" required class="w-full p-4 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-coosajo-green" placeholder="Usuario">
-                <input type="password" id="login-pass" required class="w-full p-4 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-coosajo-green" placeholder="Contraseña">
-                <button type="submit" class="w-full bg-coosajo-green text-white font-bold py-4 rounded-xl hover:bg-coosajo-hoverGreen transition-all">Ingresar</button>
+            <h2 class="text-2xl font-extrabold text-coosajo-blue text-center mb-2">Iniciar Sesión</h2>
+            <form id="login-form" class="space-y-5">
+                <input type="text" id="login-user" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none" placeholder="Usuario">
+                <input type="password" id="login-pass" required class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none" placeholder="Contraseña">
+                <button type="submit" class="w-full bg-gradient-to-r from-coosajo-green to-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg hover:scale-[1.02] transition-transform mt-4">Ingresar</button>
             </form>
         </div>
     </div>
 
-    <!-- MAIN APP LAYOUT -->
-    <div id="app-content" class="hidden flex h-full w-full">
-        
-        <!-- SIDEBAR -->
-        <aside class="w-64 bg-coosajo-blue text-white flex flex-col flex-shrink-0 shadow-xl">
-            <div class="p-6 border-b border-white/10 flex items-center gap-3">
-                <div class="bg-white p-1 rounded-lg w-10 h-10 flex items-center justify-center">
-                    <img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" class="h-6" onerror="this.style.display='none'">
+    <!-- CONTENIDO DE LA APP -->
+    <div id="app-content" class="hidden flex-col h-full w-full">
+        <nav class="bg-coosajo-blue text-white shadow-lg z-20 flex-shrink-0 relative h-16 flex items-center px-6">
+            <div class="flex items-center justify-between w-full">
+                <div class="bg-white p-1 rounded-lg">
+                    <img src="LOGO COOSAJO SIN ESLOGAN.png" alt="COOSAJO Logo" class="h-8 object-contain">
                 </div>
-                <span class="font-bold tracking-tight">COOSAJO R.L.</span>
-            </div>
-            <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
-                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white transition-all sidebar-active">
-                    <i class="fa-solid fa-chart-line"></i> Dashboard
-                </button>
-                <button onclick="switchTab('demographics')" id="nav-demographics" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white transition-all">
-                    <i class="fa-solid fa-users"></i> Demografía
-                </button>
-                <button onclick="switchTab('ingreso')" id="nav-ingreso" class="sidebar-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white transition-all">
-                    <i class="fa-solid fa-pen-to-square"></i> Ingreso de Datos
-                </button>
-            </nav>
-            <div class="p-4 border-t border-white/10">
-                <button onclick="logout()" class="flex items-center gap-3 text-red-400 px-4 py-2 hover:bg-red-500/10 rounded-lg w-full">
-                    <i class="fa-solid fa-power-off"></i> Cerrar Sesión
-                </button>
-            </div>
-        </aside>
-
-        <!-- CONTENT AREA -->
-        <main class="flex-1 flex flex-col min-w-0 bg-gray-50 overflow-hidden">
-            
-            <!-- TOP BAR -->
-            <header class="h-16 bg-white border-b flex items-center justify-between px-8 flex-shrink-0">
-                <h2 id="view-title" class="text-xl font-bold text-coosajo-blue">Dashboard Analítico</h2>
                 <div class="flex items-center gap-4">
-                    <select id="global-week-selector" onchange="loadWeekData(this.value)" class="bg-gray-100 border-none rounded-lg text-sm px-4 py-2 outline-none focus:ring-2 focus:ring-coosajo-green">
-                        <!-- Opciones dinámicas -->
-                    </select>
-                    <div id="user-initials" class="w-9 h-9 rounded-full bg-coosajo-green text-white flex items-center justify-center font-bold text-sm shadow-md">
-                        U
+                    <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">
+                        <i class="fa-solid fa-calendar-days text-coosajo-green"></i>
+                        <input type="text" id="global-week-selector" list="period-list" class="bg-transparent border-none text-white text-sm font-bold focus:outline-none w-40" placeholder="Período">
+                        <datalist id="period-list"></datalist>
                     </div>
+                    <button id="btn-logout" class="w-9 h-9 rounded-full bg-coosajo-green flex items-center justify-center font-bold">E</button>
                 </div>
-            </header>
-
-            <!-- SCROLLABLE CONTENT -->
-            <div class="flex-1 overflow-y-auto p-8">
-                
-                <!-- TAB: DASHBOARD -->
-                <div id="tab-dashboard" class="tab-content fade-in space-y-6">
-                    <!-- KPI Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div class="glass-card p-6 rounded-2xl">
-                            <p class="text-xs font-bold text-gray-400 uppercase">Seguidores</p>
-                            <h3 id="val-followers" class="text-3xl font-black text-coosajo-blue mt-1">0</h3>
-                        </div>
-                        <div class="glass-card p-6 rounded-2xl">
-                            <p class="text-xs font-bold text-gray-400 uppercase">Impresiones</p>
-                            <h3 id="val-impressions" class="text-3xl font-black text-coosajo-green mt-1">0</h3>
-                        </div>
-                        <div class="glass-card p-6 rounded-2xl border-b-4 border-coosajo-green">
-                            <p class="text-xs font-bold text-gray-400 uppercase">Engagement</p>
-                            <h3 id="val-engagement" class="text-3xl font-black text-gray-800 mt-1">0%</h3>
-                        </div>
-                        <div class="glass-card p-6 rounded-2xl">
-                            <p class="text-xs font-bold text-gray-400 uppercase">Interacciones</p>
-                            <h3 id="val-interactions" class="text-3xl font-black text-coosajo-blue mt-1">0</h3>
-                        </div>
-                    </div>
-
-                    <!-- Gráfico Principal -->
-                    <div class="glass-card p-6 rounded-2xl">
-                        <h4 class="font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-wave-square text-coosajo-green"></i> Rendimiento Semanal</h4>
-                        <div class="h-64"><canvas id="mainChart"></canvas></div>
-                    </div>
-                </div>
-
-                <!-- TAB: DEMOGRAFÍA (NUEVO) -->
-                <div id="tab-demographics" class="tab-content fade-in hidden space-y-6">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Pastel Guatemala -->
-                        <div class="glass-card p-6 rounded-2xl flex flex-col items-center">
-                            <h4 class="font-bold mb-6 text-coosajo-blue"><i class="fa-solid fa-map-location-dot"></i> Departamentos de Guatemala</h4>
-                            <div class="w-full max-w-[300px]"><canvas id="chartGua"></canvas></div>
-                        </div>
-                        <!-- Pastel Países -->
-                        <div class="glass-card p-6 rounded-2xl flex flex-col items-center">
-                            <h4 class="font-bold mb-6 text-coosajo-green"><i class="fa-solid fa-earth-americas"></i> Distribución por Países</h4>
-                            <div class="w-full max-w-[300px]"><canvas id="chartCountries"></canvas></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB: INGRESO DE DATOS -->
-                <div id="tab-ingreso" class="tab-content fade-in hidden">
-                    <div class="max-w-4xl mx-auto space-y-6">
-                        <div class="glass-card p-8 rounded-3xl space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="col-span-2">
-                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Nombre del Período</label>
-                                    <input type="text" id="form-week" class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:ring-2 focus:ring-coosajo-green" placeholder="Ej: 01 al 07 de Mayo">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Seguidores Totales</label>
-                                    <input type="number" id="form-followers" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Impresiones</label>
-                                    <input type="number" id="form-impressions" class="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl outline-none">
-                                </div>
-                            </div>
-
-                            <!-- INGRESO DEMOGRÁFICO MANUAL -->
-                            <div class="pt-6 border-t border-gray-100">
-                                <h4 class="font-bold text-coosajo-blue mb-4">Ingreso de Datos Demográficos</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-                                    <select id="form-demo-type" class="p-3 bg-gray-50 rounded-xl outline-none text-sm">
-                                        <option value="gua">Guatemala (Depto)</option>
-                                        <option value="country">País</option>
-                                    </select>
-                                    <input type="text" id="form-demo-name" class="md:col-span-2 p-3 bg-gray-50 rounded-xl outline-none text-sm" placeholder="Nombre (Chiquimula, USA, etc.)">
-                                    <input type="number" id="form-demo-val" class="p-3 bg-gray-50 rounded-xl outline-none text-sm" placeholder="%">
-                                </div>
-                                <button onclick="addDemographic()" class="w-full py-2 bg-coosajo-blue text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">+ Agregar a la lista</button>
-                                
-                                <div class="mt-4 bg-gray-50 rounded-xl p-4 min-h-[100px]">
-                                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Lista temporal para este período:</p>
-                                    <div id="demo-list-preview" class="flex flex-wrap gap-2"></div>
-                                </div>
-                            </div>
-
-                            <button onclick="saveFullPeriod()" class="w-full py-4 bg-coosajo-green text-white font-black rounded-2xl shadow-lg hover:translate-y-[-2px] transition-all">
-                                GUARDAR PERÍODO COMPLETO
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
-        </main>
+            <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-coosajo-green to-coosajo-blue"></div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-white/80 border-r border-gray-200 flex flex-col p-5 space-y-2">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-2">Menú Principal</p>
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn active w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-gray-500 transition-all hover:bg-gray-100">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </button>
+                <button onclick="switchTab('demografia')" id="nav-demografia" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-gray-500 transition-all hover:bg-gray-100">
+                    <i class="fa-solid fa-users-viewfinder"></i> Demografía
+                </button>
+                <button onclick="switchTab('ingreso')" id="nav-ingreso" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl text-gray-500 transition-all hover:bg-gray-100">
+                    <i class="fa-solid fa-keyboard"></i> Ingreso Manual
+                </button>
+            </aside>
+
+            <!-- Workspace -->
+            <main class="flex-1 overflow-y-auto p-8">
+                
+                <!-- DASHBOARD -->
+                <div id="tab-dashboard" class="tab-content fade-in space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                        <div class="glass-card p-6 rounded-2xl border-l-4 border-coosajo-blue">
+                            <p class="text-xs text-gray-400 font-bold">Seguidores</p>
+                            <h3 class="text-3xl font-black text-coosajo-blue" id="val-followers">0</h3>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl border-l-4 border-coosajo-green">
+                            <p class="text-xs text-gray-400 font-bold">Impresiones</p>
+                            <h3 class="text-3xl font-black text-coosajo-green" id="val-impressions">0</h3>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl border-l-4 border-coosajo-blue">
+                            <p class="text-xs text-gray-400 font-bold">Interacciones</p>
+                            <h3 class="text-3xl font-black text-coosajo-blue" id="val-interactions">0</h3>
+                        </div>
+                        <div class="glass-card p-6 rounded-2xl border-l-4 border-coosajo-green">
+                            <p class="text-xs text-gray-400 font-bold">Engagement</p>
+                            <h3 class="text-3xl font-black text-gray-800" id="val-engagement">0%</h3>
+                        </div>
+                    </div>
+                    <div class="glass-card p-6 rounded-3xl h-80"><canvas id="mainChart"></canvas></div>
+                </div>
+
+                <!-- DEMOGRAFÍA -->
+                <div id="tab-demografia" class="tab-content hidden fade-in space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-card p-8 rounded-3xl flex flex-col items-center">
+                            <h3 class="font-bold mb-6 text-coosajo-blue self-start">Departamentos de Guatemala</h3>
+                            <div class="w-full max-w-sm"><canvas id="chartGua"></canvas></div>
+                        </div>
+                        <div class="glass-card p-8 rounded-3xl flex flex-col items-center">
+                            <h3 class="font-bold mb-6 text-coosajo-green self-start">Distribución por Países</h3>
+                            <div class="w-full max-w-sm"><canvas id="chartCountry"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INGRESO MANUAL -->
+                <div id="tab-ingreso" class="tab-content hidden fade-in space-y-6">
+                    <div class="glass-card p-8 rounded-[2rem] border-t-8 border-coosajo-green space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 mb-2">Nombre del Período</label>
+                                <input type="text" id="f-week" class="w-full p-3 bg-gray-50 border rounded-xl font-bold">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="number" id="f-followers" placeholder="Seguidores" class="p-3 bg-gray-50 border rounded-xl">
+                                <input type="number" id="f-impressions" placeholder="Impresiones" class="p-3 bg-gray-50 border rounded-xl">
+                            </div>
+                        </div>
+
+                        <!-- MODULO DEMOGRAFICO MANUAL -->
+                        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                            <h4 class="font-bold text-sm text-coosajo-blue mb-4">Ingreso de Datos Demográficos</h4>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <select id="d-type" class="p-2 text-xs rounded border outline-none">
+                                    <option value="gua">Guatemala (Depto)</option>
+                                    <option value="country">País Exterior</option>
+                                </select>
+                                <input type="text" id="d-label" placeholder="Nombre" class="flex-1 p-2 text-xs rounded border">
+                                <input type="number" id="d-val" placeholder="Cantidad" class="w-24 p-2 text-xs rounded border">
+                                <button onclick="addDemoData()" class="bg-coosajo-blue text-white px-4 rounded-lg text-xs font-bold shadow-md hover:bg-slate-800">+</button>
+                            </div>
+                            <div id="temp-list" class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-32 overflow-y-auto text-[10px]"></div>
+                        </div>
+
+                        <div class="grid grid-cols-7 gap-2">
+                            <input type="number" id="d1" placeholder="Lun" class="p-2 border rounded-lg text-center text-xs">
+                            <input type="number" id="d2" placeholder="Mar" class="p-2 border rounded-lg text-center text-xs">
+                            <input type="number" id="d3" placeholder="Mie" class="p-2 border rounded-lg text-center text-xs">
+                            <input type="number" id="d4" placeholder="Jue" class="p-2 border rounded-lg text-center text-xs">
+                            <input type="number" id="d5" placeholder="Vie" class="p-2 border rounded-lg text-center text-xs">
+                            <input type="number" id="d6" placeholder="Sab" class="p-2 border rounded-lg text-center text-xs">
+                            <input type="number" id="d7" placeholder="Dom" class="p-2 border rounded-lg text-center text-xs">
+                        </div>
+
+                        <button onclick="saveAll()" class="w-full py-4 bg-coosajo-green text-white font-black rounded-2xl shadow-xl hover:scale-[1.01] transition-all">
+                            GUARDAR DATOS DEL PERÍODO
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
     </div>
 
-    <!-- SCRIPT PRINCIPAL -->
     <script>
-        // BASE DE DATOS LOCAL
-        let appData = JSON.parse(localStorage.getItem('coosajo_db_v2')) || {
-            "Semana Ejemplo": {
-                metrics: { followers: 56500, impressions: 480000, interactions: 18000, engagement: 8.2 },
-                daily: [2500, 3100, 2800, 4500, 5200, 6800, 5900],
+        let db = JSON.parse(localStorage.getItem('coosajo_v5_data')) || {
+            "Semana de Mayo": {
+                metrics: { followers: 56500, impressions: 450000, interactions: 18000, engagement: 8.5 },
+                daily: [5000, 6000, 5500, 7000, 8000, 12000, 10000],
                 demographics: {
-                    gua: { labels: ["Chiquimula", "Zacapa", "Jalapa"], data: [60, 25, 15] },
-                    countries: { labels: ["Guatemala", "USA", "Honduras"], data: [85, 10, 5] }
+                    gua: [{l: 'Chiquimula', v: 40000}, {l: 'Zacapa', v: 8000}, {l: 'Jalapa', v: 5000}],
+                    country: [{l: 'Guatemala', v: 53000}, {l: 'USA', v: 2500}, {l: 'Honduras', v: 1000}]
                 }
             }
         };
 
-        let tempDemo = { gua: { labels: [], data: [] }, countries: { labels: [], data: [] } };
+        let tempDemo = { gua: [], country: [] };
         let charts = {};
 
         document.addEventListener('DOMContentLoaded', () => {
             initCharts();
-            updateSelectors();
-            checkAuth();
+            updateUI();
             
-            // Login Logic
             document.getElementById('login-form').addEventListener('submit', (e) => {
                 e.preventDefault();
-                sessionStorage.setItem('logged', 'true');
-                checkAuth();
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('app-content').classList.replace('hidden', 'flex');
+                loadData(Object.keys(db)[0]);
             });
         });
 
         function initCharts() {
-            // Main Line Chart
-            charts.main = new Chart(document.getElementById('mainChart'), {
+            charts.main = new Chart(document.getElementById('mainChart').getContext('2d'), {
                 type: 'line',
-                data: {
-                    labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
-                    datasets: [{ label: 'Interacciones', data: [], borderColor: '#158e45', tension: 0.4, fill: true, backgroundColor: 'rgba(21, 142, 69, 0.05)' }]
-                },
+                data: { labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'], datasets: [{ label: 'Imp', data: [], borderColor: '#158e45', tension: 0.4, fill: true, backgroundColor: 'rgba(21, 142, 69, 0.05)' }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
 
-            // Pie Charts
-            const pieOptions = { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } };
-            
-            charts.gua = new Chart(document.getElementById('chartGua'), {
+            const pieConfig = (id, colors) => ({
                 type: 'doughnut',
-                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#172e59', '#158e45', '#3b82f6', '#fbbf24', '#f87171'] }] },
-                options: pieOptions
+                data: { labels: [], datasets: [{ data: [], backgroundColor: colors, borderWidth: 0 }] },
+                options: { responsive: true, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
             });
 
-            charts.countries = new Chart(document.getElementById('chartCountries'), {
-                type: 'doughnut',
-                data: { labels: [], datasets: [{ data: [], backgroundColor: ['#158e45', '#172e59', '#6366f1', '#f59e0b', '#ec4899'] }] },
-                options: pieOptions
-            });
+            charts.gua = new Chart(document.getElementById('chartGua'), pieConfig('gua', ['#172e59', '#158e45', '#334155', '#94a3b8', '#cbd5e1', '#818cf8']));
+            charts.country = new Chart(document.getElementById('chartCountry'), pieConfig('country', ['#158e45', '#172e59', '#6366f1', '#f59e0b', '#ec4899', '#94a3b8']));
         }
 
-        function checkAuth() {
-            if(sessionStorage.getItem('logged')) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-content').classList.remove('hidden');
-                loadWeekData(Object.keys(appData)[0]);
-            }
+        function addDemoData() {
+            const type = document.getElementById('d-type').value;
+            const l = document.getElementById('d-label').value;
+            const v = parseInt(document.getElementById('d-val').value);
+            if(!l || isNaN(v)) return;
+            tempDemo[type].push({l, v});
+            renderTempList();
+            document.getElementById('d-label').value = ""; document.getElementById('d-val').value = "";
         }
 
-        function updateSelectors() {
-            const sel = document.getElementById('global-week-selector');
-            sel.innerHTML = Object.keys(appData).map(w => `<option value="${w}">${w}</option>`).join('');
+        function renderTempList() {
+            const div = document.getElementById('temp-list');
+            div.innerHTML = "";
+            ['gua', 'country'].forEach(t => tempDemo[t].forEach((i, idx) => {
+                div.innerHTML += `<div class="flex justify-between bg-white p-2 border rounded"><span>${t.toUpperCase()}: ${i.l}</span><b>${i.v}</b></div>`;
+            }));
         }
 
-        function loadWeekData(week) {
-            const data = appData[week];
-            if(!data) return;
-
-            // Update KPIs
-            document.getElementById('val-followers').innerText = data.metrics.followers.toLocaleString();
-            document.getElementById('val-impressions').innerText = (data.metrics.impressions / 1000).toFixed(1) + "K";
-            document.getElementById('val-interactions').innerText = data.metrics.interactions.toLocaleString();
-            document.getElementById('val-engagement').innerText = data.metrics.engagement + "%";
-
-            // Update Line Chart
-            charts.main.data.datasets[0].data = data.daily;
-            charts.main.update();
-
-            // Update Pie Charts
-            charts.gua.data.labels = data.demographics.gua.labels;
-            charts.gua.data.datasets[0].data = data.demographics.gua.data;
-            charts.gua.update();
-
-            charts.countries.data.labels = data.demographics.countries.labels;
-            charts.countries.data.datasets[0].data = data.demographics.countries.data;
-            charts.countries.update();
-        }
-
-        // ENTRY LOGIC
-        function addDemographic() {
-            const type = document.getElementById('form-demo-type').value;
-            const name = document.getElementById('form-demo-name').value;
-            const val = document.getElementById('form-demo-val').value;
-
-            if(!name || !val) return;
-
-            const target = type === 'gua' ? tempDemo.gua : tempDemo.countries;
-            target.labels.push(name);
-            target.data.push(Number(val));
-
-            // UI Feedback
-            const badge = document.createElement('span');
-            badge.className = `px-3 py-1 rounded-full text-[10px] font-bold ${type==='gua'?'bg-blue-100 text-coosajo-blue':'bg-green-100 text-coosajo-green'}`;
-            badge.innerText = `${name} (${val}%)`;
-            document.getElementById('demo-list-preview').appendChild(badge);
-
-            // Clean
-            document.getElementById('form-demo-name').value = "";
-            document.getElementById('form-demo-val').value = "";
-        }
-
-        function saveFullPeriod() {
-            const week = document.getElementById('form-week').value;
-            if(!week) return alert("Ingresa el nombre del período");
-
-            appData[week] = {
-                metrics: {
-                    followers: Number(document.getElementById('form-followers').value) || 0,
-                    impressions: Number(document.getElementById('form-impressions').value) || 0,
-                    interactions: Math.floor(Math.random() * 20000), // Simulado para el ejemplo
-                    engagement: (Math.random() * 10).toFixed(1)
-                },
-                daily: Array.from({length: 7}, () => Math.floor(Math.random() * 5000)),
+        function saveAll() {
+            const w = document.getElementById('f-week').value;
+            if(!w) return alert("Nombre de semana requerido");
+            db[w] = {
+                metrics: { followers: parseInt(document.getElementById('f-followers').value)||0, impressions: parseInt(document.getElementById('f-impressions').value)||0, interactions: 15000, engagement: 7.5 },
+                daily: [1,2,3,4,5,6,7].map(i => parseInt(document.getElementById('d'+i).value)||0),
                 demographics: JSON.parse(JSON.stringify(tempDemo))
             };
-
-            localStorage.setItem('coosajo_db_v2', JSON.stringify(appData));
-            updateSelectors();
-            tempDemo = { gua: { labels: [], data: [] }, countries: { labels: [], data: [] } };
-            document.getElementById('demo-list-preview').innerHTML = "";
-            alert("¡Período guardado!");
+            localStorage.setItem('coosajo_v5_data', JSON.stringify(db));
+            updateUI();
+            alert("Período Guardado");
+            tempDemo = { gua: [], country: [] };
+            renderTempList();
+            loadData(w);
             switchTab('dashboard');
-            loadWeekData(week);
+        }
+
+        function loadData(w) {
+            const d = db[w]; if(!d) return;
+            document.getElementById('val-followers').innerText = d.metrics.followers.toLocaleString();
+            document.getElementById('val-impressions').innerText = (d.metrics.impressions/1000).toFixed(1) + "K";
+            document.getElementById('val-interactions').innerText = d.metrics.interactions.toLocaleString();
+            document.getElementById('val-engagement').innerText = d.metrics.engagement + "%";
+            charts.main.data.datasets[0].data = d.daily; charts.main.update();
+            ['gua', 'country'].forEach(id => {
+                charts[id].data.labels = d.demographics[id].map(i => i.l);
+                charts[id].data.datasets[0].data = d.demographics[id].map(i => i.v);
+                charts[id].update();
+            });
+            document.getElementById('global-week-selector').value = w;
         }
 
         function switchTab(id) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
             document.getElementById('tab-' + id).classList.remove('hidden');
-            
-            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('sidebar-active'));
-            document.getElementById('nav-' + id).classList.add('sidebar-active');
-
-            const titles = { dashboard: "Dashboard Analítico", demographics: "Distribución Demográfica", ingreso: "Ingreso Manual de Datos" };
-            document.getElementById('view-title').innerText = titles[id];
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('nav-' + id).classList.add('active');
         }
 
-        function logout() {
-            sessionStorage.clear();
-            location.reload();
+        function updateUI() {
+            const sel = document.getElementById('global-week-selector');
+            const list = document.getElementById('period-list');
+            const keys = Object.keys(db);
+            list.innerHTML = keys.map(k => `<option value="${k}">`).join('');
+            sel.value = keys[keys.length-1];
         }
+
+        document.getElementById('global-week-selector').addEventListener('change', (e) => loadData(e.target.value));
+        document.getElementById('btn-logout').addEventListener('click', () => location.reload());
     </script>
 </body>
 </html>
