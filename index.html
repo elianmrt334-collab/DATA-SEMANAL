@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Analítico - COOSAJO R.L.</title>
+    <title>Dashboard Elite - COOSAJO R.L.</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -56,9 +56,12 @@
             font-weight: 700;
         }
 
-        /* Estilo para el input de fecha para que combine con el diseño */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* Estilo personalizado para unificar el icono de calendario en navegadores web */
         input[type="date"]::-webkit-calendar-picker-indicator {
-            filter: invert(34%) sepia(85%) border-left(115%) saturate(452%) hue-rotate(94deg) brightness(92%) contrast(85%);
+            filter: invert(34%) sepia(85%) saturate(452%) hue-rotate(94deg) brightness(92%) contrast(85%);
             cursor: pointer;
         }
     </style>
@@ -67,35 +70,35 @@
 
     <!-- LOGIN SCREEN -->
     <div id="login-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-coosajo-blue to-[#0e1d38] p-4 transition-opacity duration-500">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md transform transition-all">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
             <div class="flex justify-center mb-6">
                 <img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" alt="COOSAJO Logo" class="h-16 object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-leaf text-coosajo-green text-5xl\'></i>'">
             </div>
-            <h2 class="text-2xl font-extrabold text-coosajo-blue text-center mb-8">Panel Administrativo</h2>
+            <h2 class="text-2xl font-extrabold text-coosajo-blue text-center mb-8">Acceso al Dashboard</h2>
             <form id="login-form" class="space-y-5">
-                <div id="login-err" class="hidden text-red-500 text-xs text-center font-bold">Credenciales incorrectas</div>
+                <div id="login-err" class="hidden text-red-500 text-xs text-center font-bold">Usuario o contraseña incorrectos</div>
                 <input type="text" id="login-user" required class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-coosajo-green" placeholder="Usuario">
                 <input type="password" id="login-pass" required class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-coosajo-green" placeholder="Contraseña">
-                <button type="submit" class="w-full bg-coosajo-green text-white font-bold py-3.5 rounded-xl shadow-lg hover:opacity-90 transition-all">Ingresar al Dashboard</button>
+                <button type="submit" class="w-full bg-coosajo-green text-white font-bold py-3.5 rounded-xl shadow-lg hover:opacity-90 transition-all">Ingresar</button>
             </form>
         </div>
     </div>
 
     <!-- APP CONTENT -->
     <div id="app-content" class="hidden flex-col h-full w-full">
-        <!-- Barra Superior -->
+        <!-- Top Nav -->
         <nav class="bg-coosajo-blue text-white shadow-lg z-20 flex-shrink-0 relative h-16 flex items-center px-6">
             <div class="flex items-center justify-between w-full">
                 <div class="bg-white p-1 rounded-lg"><img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" class="h-8"></div>
                 <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">
                         <i class="fa-solid fa-calendar text-coosajo-green"></i>
-                        <input type="text" id="global-week-selector" list="period-list" class="bg-transparent border-none text-white text-sm font-bold focus:outline-none w-44" placeholder="Ver Período">
+                        <input type="text" id="global-week-selector" list="period-list" class="bg-transparent border-none text-white text-sm font-bold focus:outline-none w-52" placeholder="Período">
                         <datalist id="period-list"></datalist>
                     </div>
                     <div id="user-display" class="flex items-center gap-2">
                         <span id="user-name-tag" class="text-xs font-bold text-gray-300"></span>
-                        <div id="btn-logout" class="w-9 h-9 rounded-full bg-coosajo-green flex items-center justify-center font-bold cursor-pointer hover:scale-105 transition-all">E</div>
+                        <div id="btn-logout" class="w-9 h-9 rounded-full bg-coosajo-green flex items-center justify-center font-bold cursor-pointer">E</div>
                     </div>
                 </div>
             </div>
@@ -104,18 +107,23 @@
         <div class="flex flex-1 overflow-hidden">
             <!-- Sidebar -->
             <aside class="w-64 bg-white/80 border-r border-gray-200 flex flex-col flex-shrink-0">
-                <div class="p-5 overflow-y-auto h-full">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2">Menú</p>
+                <div class="p-5 overflow-y-auto h-full custom-scrollbar">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2">Visualización</p>
                     <nav class="space-y-1">
                         <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn active w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-gray-500 hover:bg-gray-50 transition-all">
-                            <i class="fa-solid fa-chart-pie w-5"></i> Dashboard Principal
+                            <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
                         </button>
                         <button onclick="switchTab('demografia')" id="nav-demografia" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-gray-500 hover:bg-gray-50 transition-all">
-                            <i class="fa-solid fa-users-viewfinder w-5"></i> Datos Demográficos
+                            <i class="fa-solid fa-users-viewfinder w-5"></i> Demografía
                         </button>
+                    </nav>
+
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2 mt-8">Configuración</p>
+                    <nav class="space-y-1">
                         <button onclick="switchTab('ingreso')" id="nav-ingreso" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-gray-500 hover:bg-gray-50 transition-all">
                             <i class="fa-solid fa-pen-to-square w-5"></i> Ingreso Manual
                         </button>
+                        <!-- SOLO VISIBLE PARA sjemartinez -->
                         <button onclick="switchTab('admin')" id="nav-admin" class="hidden nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-coosajo-blue hover:bg-blue-50 transition-all">
                             <i class="fa-solid fa-user-gear w-5"></i> Gestión Usuarios
                         </button>
@@ -124,11 +132,11 @@
             </aside>
 
             <!-- Workspace -->
-            <main class="flex-1 overflow-y-auto p-8">
+            <main class="flex-1 overflow-y-auto p-8 bg-slate-50/50">
                 
                 <!-- DASHBOARD -->
                 <div id="tab-dashboard" class="tab-content fade-in block space-y-6">
-                    <h2 class="text-3xl font-black text-coosajo-blue tracking-tight">Rendimiento Social</h2>
+                    <h2 class="text-3xl font-black text-coosajo-blue">Resumen de Rendimiento</h2>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
                         <div class="glass-card p-6 rounded-2xl border-l-4 border-coosajo-blue">
                             <p class="text-xs text-gray-400 font-bold uppercase">Seguidores</p>
@@ -152,7 +160,7 @@
 
                 <!-- DEMOGRAFÍA -->
                 <div id="tab-demografia" class="tab-content fade-in hidden space-y-6">
-                    <h2 class="text-3xl font-black text-coosajo-blue tracking-tight">Distribución Geográfica</h2>
+                    <h2 class="text-3xl font-black text-coosajo-blue">Datos Geográficos</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div class="glass-card p-8 rounded-3xl flex flex-col items-center">
                             <h3 class="font-bold text-coosajo-blue self-start mb-6">Departamentos Guatemala</h3>
@@ -165,82 +173,90 @@
                     </div>
                 </div>
 
-                <!-- INGRESO DE DATOS (CON CALENDARIO) -->
+                <!-- INGRESO DE DATOS -->
                 <div id="tab-ingreso" class="tab-content fade-in hidden space-y-6">
-                    <div class="glass-card p-8 rounded-[2rem] space-y-8 border-t-8 border-coosajo-green">
-                        <h2 class="text-2xl font-bold text-coosajo-blue">Carga de Métricas</h2>
-                        
-                        <!-- NOMBRE Y FECHA (CALENDARIO) -->
-                        <div class="bg-coosajo-blue text-white p-6 rounded-3xl shadow-lg flex flex-col md:flex-row gap-6 items-end">
-                            <div class="flex-1 w-full">
-                                <label class="block font-bold mb-2 text-sm uppercase tracking-widest opacity-80">Identificador del Período:</label>
-                                <input type="text" id="f-week" placeholder="Ej: Semana de Mayo" class="w-full p-3 rounded-xl text-gray-800 font-bold outline-none">
-                            </div>
-                            <div class="w-full md:w-64">
-                                <label class="block font-bold mb-2 text-sm uppercase tracking-widest opacity-80">Fecha de Inicio:</label>
-                                <input type="date" id="f-date" class="w-full p-3 rounded-xl text-gray-800 font-bold outline-none">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="glass-card p-6 rounded-2xl space-y-4">
-                                <h3 class="font-bold border-b pb-2 text-sm uppercase text-gray-400">KPIs Principales</h3>
-                                <input type="number" id="f-followers" placeholder="Seguidores Totales" class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:border-coosajo-green">
-                                <input type="number" id="f-impressions" placeholder="Impresiones Totales" class="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:border-coosajo-green">
-                            </div>
-
-                            <!-- Demografía Manual -->
-                            <div class="glass-card p-6 rounded-2xl space-y-4 md:col-span-2 bg-blue-50/30">
-                                <h3 class="font-bold border-b pb-2 text-sm uppercase text-gray-400">Segmentación Demográfica</h3>
-                                <div class="flex flex-wrap gap-2 mb-4">
-                                    <select id="d-type" class="p-2.5 bg-white border rounded-xl text-xs font-bold outline-none">
-                                        <option value="gua">Guatemala (Depto)</option>
-                                        <option value="country">País Exterior</option>
-                                    </select>
-                                    <input type="text" id="d-label" placeholder="Nombre" class="flex-1 p-2.5 bg-white border rounded-xl text-xs outline-none">
-                                    <input type="number" id="d-val" placeholder="%" class="w-20 p-2.5 bg-white border rounded-xl text-xs outline-none">
-                                    <button onclick="addDemoData()" class="bg-coosajo-blue text-white px-4 rounded-xl font-bold hover:bg-slate-800 transition-all">+</button>
+                    <div class="glass-card p-8 rounded-[2rem] space-y-6 border-t-8 border-coosajo-green">
+                        <h2 class="text-2xl font-bold text-coosajo-blue">Registro de Métricas Semanales</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Nombre del Período con Calendario Integrado al Lado -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 mb-1">Nombre Período</label>
+                                    <input type="text" id="f-week" placeholder="Ej: 01-07 Mayo" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-coosajo-green font-bold text-coosajo-blue">
                                 </div>
-                                <div id="temp-list" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px] max-h-32 overflow-y-auto"></div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 mb-1">Fecha Específica</label>
+                                    <input type="date" id="f-date" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-coosajo-green font-bold text-coosajo-blue">
+                                </div>
+                            </div>
+                            <!-- Métricas de Seguidores e Impresiones -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 mb-1">Seguidores</label>
+                                    <input type="number" id="f-followers" placeholder="Seguidores" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-coosajo-green">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 mb-1">Impresiones</label>
+                                    <input type="number" id="f-impressions" placeholder="Impresiones" class="w-full p-4 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-coosajo-green">
+                                </div>
                             </div>
                         </div>
 
-                        <div class="glass-card p-6 rounded-2xl">
-                            <h3 class="font-bold mb-4 text-sm uppercase text-gray-400">Evolución Diaria (Impresiones)</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-7 gap-3">
-                                <input type="number" id="d1" placeholder="Lun" class="p-2 border rounded-lg text-center text-xs">
-                                <input type="number" id="d2" placeholder="Mar" class="p-2 border rounded-lg text-center text-xs">
-                                <input type="number" id="d3" placeholder="Mie" class="p-2 border rounded-lg text-center text-xs">
-                                <input type="number" id="d4" placeholder="Jue" class="p-2 border rounded-lg text-center text-xs">
-                                <input type="number" id="d5" placeholder="Vie" class="p-2 border rounded-lg text-center text-xs">
-                                <input type="number" id="d6" placeholder="Sab" class="p-2 border rounded-lg text-center text-xs">
-                                <input type="number" id="d7" placeholder="Dom" class="p-2 border rounded-lg text-center text-xs">
+                        <!-- Geografía Manual -->
+                        <div class="bg-blue-50/50 p-6 rounded-2xl border border-blue-100">
+                            <h3 class="text-sm font-bold text-coosajo-blue mb-4 uppercase tracking-wider">Añadir Datos Demográficos</h3>
+                            <div class="flex flex-wrap gap-3 mb-4">
+                                <select id="d-type" class="p-3 bg-white border rounded-xl text-xs font-bold">
+                                    <option value="gua">Guatemala (Depto)</option>
+                                    <option value="country">País Exterior</option>
+                                </select>
+                                <input type="text" id="d-label" placeholder="Nombre (Zacapa, USA...)" class="flex-1 p-3 bg-white border rounded-xl text-xs">
+                                <input type="number" id="d-val" placeholder="%" class="w-24 p-3 bg-white border rounded-xl text-xs">
+                                <button type="button" onclick="addDemoData()" class="bg-coosajo-blue text-white px-6 rounded-xl font-bold hover:scale-105 transition-all">+</button>
                             </div>
+                            <div id="temp-list" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]"></div>
                         </div>
 
-                        <button onclick="saveAll()" class="w-full py-4 bg-coosajo-green text-white font-black rounded-2xl shadow-xl hover:scale-[1.01] transition-all uppercase tracking-widest">
-                            Guardar Registro Completo
+                        <!-- Inputs diarios -->
+                        <div class="grid grid-cols-2 md:grid-cols-7 gap-2">
+                            <input type="number" id="d1" placeholder="Lun" class="p-3 border rounded-xl text-center">
+                            <input type="number" id="d2" placeholder="Mar" class="p-3 border rounded-xl text-center">
+                            <input type="number" id="d3" placeholder="Mie" class="p-3 border rounded-xl text-center">
+                            <input type="number" id="d4" placeholder="Jue" class="p-3 border rounded-xl text-center">
+                            <input type="number" id="d5" placeholder="Vie" class="p-3 border rounded-xl text-center">
+                            <input type="number" id="d6" placeholder="Sab" class="p-3 border rounded-xl text-center">
+                            <input type="number" id="d7" placeholder="Dom" class="p-3 border rounded-xl text-center">
+                        </div>
+
+                        <button type="button" onclick="saveAll()" class="w-full py-4 bg-coosajo-green text-white font-black rounded-2xl shadow-xl hover:translate-y-[-2px] transition-all uppercase tracking-widest">
+                            Guardar Período Completo
                         </button>
                     </div>
                 </div>
 
-                <!-- TAB: ADMIN (Gestión Usuarios) -->
+                <!-- TAB: ADMIN (Gestión de Usuarios) -->
                 <div id="tab-admin" class="tab-content fade-in hidden space-y-6">
-                    <h2 class="text-3xl font-black text-coosajo-blue tracking-tight">Administración de Accesos</h2>
+                    <h2 class="text-3xl font-black text-coosajo-blue">Panel de Administración</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="glass-card p-6 rounded-3xl space-y-4">
-                            <h3 class="font-bold text-coosajo-green border-b pb-2">Crear Usuario</h3>
-                            <input type="text" id="adm-name" placeholder="Nombre Completo" class="w-full p-3 bg-gray-50 border rounded-xl text-sm outline-none">
-                            <input type="text" id="adm-user" placeholder="Nombre de Usuario" class="w-full p-3 bg-gray-50 border rounded-xl text-sm outline-none">
-                            <input type="password" id="adm-pass" placeholder="Contraseña" class="w-full p-3 bg-gray-50 border rounded-xl text-sm outline-none">
-                            <button onclick="createNewUser()" class="w-full py-3 bg-coosajo-blue text-white font-bold rounded-xl hover:bg-slate-800 transition-all">Registrar</button>
+                        <!-- Formulario Nuevo Usuario -->
+                        <div class="glass-card p-6 rounded-3xl space-y-4 h-fit">
+                            <h3 class="font-bold text-coosajo-green border-b pb-2">Crear Nuevo Usuario</h3>
+                            <input type="text" id="adm-name" placeholder="Nombre Completo" class="w-full p-3 bg-gray-50 border rounded-xl text-sm">
+                            <input type="text" id="adm-user" placeholder="Nombre de Usuario" class="w-full p-3 bg-gray-50 border rounded-xl text-sm">
+                            <input type="password" id="adm-pass" placeholder="Contraseña" class="w-full p-3 bg-gray-50 border rounded-xl text-sm">
+                            <button onclick="createNewUser()" class="w-full py-3 bg-coosajo-blue text-white font-bold rounded-xl hover:bg-slate-800 transition-all">Registrar Usuario</button>
                         </div>
-                        <div class="lg:col-span-2 glass-card p-6 rounded-3xl overflow-hidden">
-                            <h3 class="font-bold text-coosajo-blue mb-4">Usuarios Activos</h3>
-                            <table class="w-full text-left text-sm">
-                                <thead class="border-b text-gray-400"><tr><th class="p-3">Nombre</th><th class="p-3">Usuario</th><th class="p-3">Acciones</th></tr></thead>
-                                <tbody id="user-table-body" class="divide-y divide-gray-50"></tbody>
-                            </table>
+                        <!-- Lista de Usuarios -->
+                        <div class="lg:col-span-2 glass-card p-6 rounded-3xl">
+                            <h3 class="font-bold text-coosajo-blue mb-4">Usuarios en el Sistema</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="border-b text-gray-400">
+                                        <tr><th class="p-3">Nombre</th><th class="p-3">Usuario</th><th class="p-3">Acciones</th></tr>
+                                    </thead>
+                                    <tbody id="user-table-body" class="divide-y divide-gray-50"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -256,14 +272,27 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE BASE DE DATOS
+        // BASE DE DATOS INICIAL
         const defaultUsers = {
             'sjemartinez': { name: 'Elián Martínez', pass: 'Coosajo2041' },
             'sjmsalazar': { name: 'Marco Salazar', pass: 'Coosajo2041' }
         };
 
+        const defaultData = {
+            "Semana de Mayo (2026-05-18)": {
+                name: "Semana de Mayo",
+                date: "2026-05-18",
+                metrics: { followers: 56500, impressions: 450000, interactions: 18000, engagement: 8.5 },
+                daily: [5000, 6000, 5500, 7000, 8000, 12000, 10000],
+                demographics: {
+                    gua: [{l: 'Chiquimula', v: 40000}, {l: 'Zacapa', v: 8000}, {l: 'Jalapa', v: 5000}],
+                    country: [{l: 'Guatemala', v: 53000}, {l: 'USA', v: 2500}, {l: 'Honduras', v: 1000}]
+                }
+            }
+        };
+
         let usersDB = JSON.parse(localStorage.getItem('coosajo_users')) || defaultUsers;
-        let dataDB = JSON.parse(localStorage.getItem('coosajo_data')) || {};
+        let dataDB = JSON.parse(localStorage.getItem('coosajo_data')) || defaultData;
         let tempDemo = { gua: [], country: [] };
         let charts = {};
         let activeUser = null;
@@ -272,55 +301,89 @@
             initCharts();
             updatePeriodSelector();
             
+            // Login Logic
             document.getElementById('login-form').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const u = document.getElementById('login-user').value.trim();
                 const p = document.getElementById('login-pass').value.trim();
+
                 if(usersDB[u] && usersDB[u].pass === p) {
                     activeUser = { username: u, ...usersDB[u] };
                     sessionStorage.setItem('active_session', JSON.stringify(activeUser));
                     startApp();
-                } else { document.getElementById('login-err').classList.remove('hidden'); }
+                } else {
+                    document.getElementById('login-err').classList.remove('hidden');
+                }
             });
 
-            document.getElementById('btn-logout').onclick = () => { sessionStorage.clear(); location.reload(); };
+            // Logout
+            document.getElementById('btn-logout').onclick = () => {
+                sessionStorage.clear();
+                location.reload();
+            };
 
+            // Check Session
             const session = sessionStorage.getItem('active_session');
-            if(session) { activeUser = JSON.parse(session); startApp(); }
+            if(session) {
+                activeUser = JSON.parse(session);
+                startApp();
+            }
         });
 
         function startApp() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-content').classList.replace('hidden', 'flex');
             document.getElementById('user-name-tag').innerText = activeUser.name;
+            
+            // Permiso especial para sjemartinez
             if(activeUser.username === 'sjemartinez') {
                 document.getElementById('nav-admin').classList.remove('hidden');
                 renderUserList();
             }
-            const keys = Object.keys(dataDB);
-            if(keys.length > 0) loadData(keys[keys.length-1]);
+
+            const firstKey = Object.keys(dataDB)[0];
+            if(firstKey) loadData(firstKey);
         }
 
-        // GESTIÓN USUARIOS
+        // GESTIÓN DE USUARIOS (SOLO sjemartinez)
         function createNewUser() {
             const name = document.getElementById('adm-name').value;
             const user = document.getElementById('adm-user').value.trim();
             const pass = document.getElementById('adm-pass').value.trim();
-            if(!name || !user || !pass) return alert("Complete los campos");
+
+            if(!name || !user || !pass) return alert("Complete todos los campos");
+            if(usersDB[user]) return alert("El usuario ya existe");
+
             usersDB[user] = { name, pass };
             localStorage.setItem('coosajo_users', JSON.stringify(usersDB));
-            alert("Usuario registrado"); renderUserList();
+            
+            alert("Usuario creado con éxito");
+            document.getElementById('adm-name').value = '';
+            document.getElementById('adm-user').value = '';
+            document.getElementById('adm-pass').value = '';
+            renderUserList();
         }
 
         function renderUserList() {
             const body = document.getElementById('user-table-body');
             body.innerHTML = Object.keys(usersDB).map(u => `
-                <tr><td class="p-3 font-bold">${usersDB[u].name}</td><td class="p-3 text-gray-500">${u}</td>
-                <td class="p-3">${u !== 'sjemartinez' ? `<button onclick="deleteUser('${u}')" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>` : 'Master'}</td></tr>
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3 font-bold">${usersDB[u].name}</td>
+                    <td class="p-3 text-gray-500">${u}</td>
+                    <td class="p-3">
+                        ${u !== 'sjemartinez' ? `<button onclick="deleteUser('${u}')" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>` : '<span class="text-xs text-coosajo-green font-bold">Admin Master</span>'}
+                    </td>
+                </tr>
             `).join('');
         }
 
-        function deleteUser(u) { if(confirm(`Eliminar a ${u}?`)) { delete usersDB[u]; localStorage.setItem('coosajo_users', JSON.stringify(usersDB)); renderUserList(); } }
+        function deleteUser(u) {
+            if(confirm(`¿Eliminar a ${u}?`)) {
+                delete usersDB[u];
+                localStorage.setItem('coosajo_users', JSON.stringify(usersDB));
+                renderUserList();
+            }
+        }
 
         // LÓGICA DE DATOS
         function addDemoData() {
@@ -328,35 +391,45 @@
             const l = document.getElementById('d-label').value;
             const v = parseInt(document.getElementById('d-val').value);
             if(!l || isNaN(v)) return;
-            tempDemo[type].push({l, v}); renderTempList();
+            tempDemo[type].push({l, v});
+            renderTempList();
             document.getElementById('d-label').value = ""; document.getElementById('d-val').value = "";
         }
 
         function renderTempList() {
-            const div = document.getElementById('temp-list'); div.innerHTML = "";
-            ['gua', 'country'].forEach(t => tempDemo[t].forEach(i => {
+            const div = document.getElementById('temp-list');
+            div.innerHTML = "";
+            ['gua', 'country'].forEach(t => tempDemo[t].forEach((i, idx) => {
                 div.innerHTML += `<div class="flex justify-between bg-white p-2 border rounded-lg mb-1"><span>${t.toUpperCase()}: ${i.l}</span><b>${i.v}%</b></div>`;
             }));
         }
 
         function saveAll() {
-            const name = document.getElementById('f-week').value;
+            const name = document.getElementById('f-week').value.trim();
             const date = document.getElementById('f-date').value;
-            if(!name || !date) return alert("Nombre y Fecha requeridos");
+            if(!name || !date) return alert("Nombre de semana y fecha requeridos");
+            
             const w = `${name} (${date})`;
+            
             dataDB[w] = {
+                name: name,
+                date: date,
                 metrics: { 
                     followers: parseInt(document.getElementById('f-followers').value)||0, 
                     impressions: parseInt(document.getElementById('f-impressions').value)||0, 
-                    interactions: 2500, engagement: 6.8 
+                    interactions: parseInt(document.getElementById('d1').value || 0) + 1500, // Simulación
+                    engagement: 7.2 
                 },
                 daily: [1,2,3,4,5,6,7].map(i => parseInt(document.getElementById('d'+i).value)||0),
                 demographics: JSON.parse(JSON.stringify(tempDemo))
             };
             localStorage.setItem('coosajo_data', JSON.stringify(dataDB));
-            updatePeriodSelector(); showToast("Período guardado");
-            tempDemo = { gua: [], country: [] }; renderTempList();
-            loadData(w); switchTab('dashboard');
+            updatePeriodSelector();
+            showToast("Datos Guardados");
+            tempDemo = { gua: [], country: [] };
+            renderTempList();
+            loadData(w);
+            switchTab('dashboard');
         }
 
         function loadData(w) {
@@ -365,6 +438,7 @@
             document.getElementById('val-impressions').innerText = d.metrics.impressions.toLocaleString();
             document.getElementById('val-interactions').innerText = d.metrics.interactions.toLocaleString();
             document.getElementById('val-engagement').innerText = d.metrics.engagement + "%";
+            
             charts.main.data.datasets[0].data = d.daily; charts.main.update();
             ['gua', 'country'].forEach(id => {
                 charts[id].data.labels = d.demographics[id].map(i => i.l);
@@ -372,6 +446,17 @@
                 charts[id].update();
             });
             document.getElementById('global-week-selector').value = w;
+
+            // Rellenar formulario del período para edición rápida
+            document.getElementById('f-week').value = d.name || w.split(' (')[0];
+            document.getElementById('f-date').value = d.date || '';
+            document.getElementById('f-followers').value = d.metrics.followers;
+            document.getElementById('f-impressions').value = d.metrics.impressions;
+            d.daily.forEach((v, i) => {
+                document.getElementById('d' + (i+1)).value = v;
+            });
+            tempDemo = JSON.parse(JSON.stringify(d.demographics));
+            renderTempList();
         }
 
         function initCharts() {
@@ -394,12 +479,16 @@
 
         function updatePeriodSelector() {
             const list = document.getElementById('period-list');
-            list.innerHTML = Object.keys(dataDB).map(k => `<option value="${k}">`).join('');
+            const keys = Object.keys(dataDB);
+            list.innerHTML = keys.map(k => `<option value="${k}">`).join('');
         }
 
         function showToast(m) {
-            const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = m;
-            t.classList.replace('hidden', 'flex'); setTimeout(() => { t.classList.replace('flex', 'hidden'); }, 3000);
+            const t = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = m;
+            t.classList.replace('hidden', 'flex');
+            t.classList.add('show');
+            setTimeout(() => { t.classList.replace('flex', 'hidden'); t.classList.remove('show'); }, 3000);
         }
 
         document.getElementById('global-week-selector').addEventListener('change', (e) => loadData(e.target.value));
