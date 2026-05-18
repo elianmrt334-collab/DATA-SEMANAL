@@ -298,7 +298,7 @@
     <script type="module">
         // IMPORTACIONES MODULARES DE FIREBASE v11.6.1
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // CONFIGURACIÓN DE FIREBASE 
@@ -514,16 +514,51 @@
 
         window.registerNewCloudUser = async function() {
             if(!activeCloudUser) return;
-            const n = document.getElementById('adm-name').value, e = document.getElementById('adm-email').value;
-            if(!n || !e) return;
+            const n = document.getElementById('adm-name').value;
+            const e = document.getElementById('adm-email').value;
+            const p = document.getElementById('adm-pass').value;
+            
+            if(!n || !e || !p) {
+                showToast("Por favor complete todos los campos");
+                return;
+            }
+            
+            // Si el usuario corporativo no tiene dominio, se lo agregamos
+            const finalEmail = e.includes('@') ? e : e + DOMINIO_APP;
             
             try {
+                // Truco: Para no cerrar la sesión actual del administrador al crear un usuario,
+                // inicializamos una App secundaria temporal en Firebase.
+                const tempAppName = "TempApp_" + Date.now();
+                const tempApp = initializeApp(firebaseConfig, tempAppName);
+                const tempAuth = getAuth(tempApp);
+                
+                // 1. Crear el usuario en Firebase Authentication
+                await createUserWithEmailAndPassword(tempAuth, finalEmail, p);
+                
+                // Deslogueamos la app temporal inmediatamente
+                await signOut(tempAuth);
+
+                // 2. Guardar el registro en Firestore para la lista de usuarios
                 const usersRef = collection(db, 'artifacts', myAppId, 'public', 'data', 'users');
-                await addDoc(usersRef, { name: n, email: e.toLowerCase() });
-                showToast("Usuario Autorizado");
+                await addDoc(usersRef, { name: n, email: finalEmail.toLowerCase() });
+                
+                showToast("Usuario Creado con Éxito");
+                
+                // Limpiamos los inputs del formulario
+                document.getElementById('adm-name').value = "";
+                document.getElementById('adm-email').value = "";
+                document.getElementById('adm-pass').value = "";
+                
             } catch(error) {
                 console.error(error);
-                showToast("Error al autorizar usuario");
+                if(error.code === 'auth/email-already-in-use') {
+                    showToast("El correo ya está registrado");
+                } else if(error.code === 'auth/weak-password') {
+                    showToast("La contraseña es muy corta (Mín. 6)");
+                } else {
+                    showToast("Error al crear usuario en Auth");
+                }
             }
         }
 
