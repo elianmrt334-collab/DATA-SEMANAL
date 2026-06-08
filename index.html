@@ -1,307 +1,26 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Integral Cloud - COOSAJO R.L.</title>
-    
-    <!-- UI & Charts -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Kalam:wght@400&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'], handwriting: ['Kalam', 'cursive'] },
-                    colors: {
-                        coosajo: { green: '#158e45', blue: '#172e59', lightGreen: '#e8f5ed', lightBlue: '#eef2f9', hoverGreen: '#127a3b' },
-                        note: '#fffbeb'
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .bg-gradient-main { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); }
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
-        .note-area { background-color: #fffdf0; background-image: linear-gradient(#e5e7eb 1px, transparent 1px); background-size: 100% 1.75rem; line-height: 1.75rem; border: 1px solid #fde68a; resize: vertical; }
-        .nav-btn.active { background-color: #e8f5ed; color: #158e45; border-left: 4px solid #158e45; font-weight: 700; }
-        .img-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background-color: #f1f5f9; border: 1px solid #e2e8f0; }
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(34%) sepia(85%) saturate(452%) hue-rotate(94deg) brightness(92%) contrast(85%); cursor: pointer; }
-    </style>
-</head>
-<body class="text-gray-800 antialiased h-screen flex flex-col overflow-hidden bg-gradient-main">
-
-    <!-- LOGIN SCREEN -->
-    <div id="login-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-coosajo-blue to-[#0e1d38] p-4 transition-opacity duration-500">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md transform transition-all">
-            <div class="flex justify-center mb-6">
-                <img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" alt="COOSAJO Logo" class="h-16 object-contain" onerror="this.src='https://placehold.co/200x80/ffffff/172e59?text=COOSAJO'">
+<!-- ... existing code ... -->
+        <!-- Toast de Éxito -->
+        <div id="toast" class="fixed top-20 right-5 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-4">
+            <div class="bg-green-500 rounded-full w-10 h-10 flex items-center justify-center shadow-inner"><i class="fa-solid fa-check text-white text-lg"></i></div>
+            <div>
+                <p class="font-bold text-sm tracking-wide">¡Guardado Exitoso!</p>
+                <p class="text-xs text-gray-400 mt-0.5" id="toast-msg">Los datos han sido registrados.</p>
             </div>
-            <h2 class="text-2xl font-extrabold text-coosajo-blue text-center mb-2 tracking-tighter">Portal Analítico</h2>
-            <p class="text-gray-400 text-[10px] uppercase font-bold tracking-widest text-center mb-8">Usa tu usuario Micoope</p>
-            <form id="login-form" class="space-y-4">
-                <div id="login-err" class="hidden bg-red-50 text-red-600 p-3 rounded-lg text-[10px] font-bold text-center border border-red-100"></div>
-                <div class="relative">
-                    <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="login-user" required class="w-full pl-11 pr-4 py-4 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-coosajo-green" placeholder="Usuario (ej: sjemartinez)">
-                </div>
-                <div class="relative">
-                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="password" id="login-pass" required class="w-full pl-11 pr-4 py-4 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-coosajo-green" placeholder="Contraseña">
-                </div>
-                <button type="submit" class="w-full bg-coosajo-green text-white font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition-all uppercase tracking-widest text-xs">Ingresar</button>
-            </form>
         </div>
-    </div>
 
-    <!-- APP CONTENT -->
-    <div id="app-content" class="hidden flex-col h-full w-full">
-        <!-- Barra Superior -->
-        <nav class="bg-coosajo-blue text-white shadow-lg z-20 flex-shrink-0 relative h-16 flex items-center px-6">
-            <div class="flex items-center justify-between w-full">
-                <div class="bg-white p-1 rounded-lg"><img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" class="h-8" onerror="this.src='https://placehold.co/100x40/ffffff/172e59?text=Logo'"></div>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg border border-white/20">
-                        <i class="fa-solid fa-calendar text-coosajo-green"></i>
-                        <select id="global-week-selector" onchange="window.loadPeriodFromCloud(this.value)" class="bg-transparent border-none text-white text-sm font-bold focus:outline-none w-48 cursor-pointer">
-                            <option value="" class="text-gray-800">Seleccionar Período</option>
-                        </select>
-                    </div>
-                    <div id="user-display" class="flex items-center gap-2 border-l border-white/20 pl-4">
-                        <span id="user-name-tag" class="text-xs font-bold text-gray-300 italic"></span>
-                        <div id="btn-logout" class="w-9 h-9 rounded-full bg-coosajo-green flex items-center justify-center font-bold cursor-pointer hover:rotate-12 transition-transform">X</div>
-                    </div>
-                </div>
-            </div>
-            <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-coosajo-green to-coosajo-blue"></div>
-        </nav>
+    </div> <!-- CIERRE DE APP CONTENT -->
 
-        <div class="flex flex-1 overflow-hidden">
-            <!-- Sidebar -->
-            <aside class="w-64 bg-white/80 border-r border-gray-200 flex flex-col flex-shrink-0 z-10">
-                <div class="p-5 overflow-y-auto h-full">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2">Visualización</p>
-                    <nav class="space-y-1">
-                        <button onclick="window.switchTab('dashboard')" id="nav-dashboard" class="nav-btn active w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-gray-500 hover:bg-gray-50 transition-all">
-                            <i class="fa-solid fa-chart-pie w-5"></i> Dashboard Principal
-                        </button>
-                        <button onclick="window.switchTab('demografia')" id="nav-demografia" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-gray-500 hover:bg-gray-50 transition-all">
-                            <i class="fa-solid fa-users-viewfinder w-5"></i> Datos Demográficos
-                        </button>
-                        <button onclick="window.switchTab('reporte')" id="nav-reporte" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-gray-500 hover:bg-gray-50 transition-all">
-                            <i class="fa-solid fa-star w-5"></i> Top 10 Posts
-                        </button>
-                        <button onclick="window.switchTab('comparativa')" id="nav-comparativa" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-gray-500 hover:bg-gray-50 transition-all">
-                            <i class="fa-solid fa-code-compare w-5"></i> Comparativa
-                        </button>
-                    </nav>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2 mt-8 text-coosajo-blue">Configuración</p>
-                    <nav class="space-y-1">
-                        <button onclick="window.switchTab('ingreso')" id="nav-ingreso" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-gray-500 hover:bg-gray-50 transition-all">
-                            <i class="fa-solid fa-pen-to-square w-5"></i> Ingreso Manual
-                        </button>
-                        <button onclick="window.switchTab('admin')" id="nav-admin" class="hidden nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm rounded-xl text-coosajo-blue hover:bg-blue-50 transition-all">
-                            <i class="fa-solid fa-user-gear w-5"></i> Gestión Usuarios
-                        </button>
-                    </nav>
-                </div>
-            </aside>
-
-            <!-- Workspace -->
-            <main class="flex-1 overflow-y-auto p-8 bg-slate-50/50">
-                
-                <!-- TAB DASHBOARD -->
-                <div id="tab-dashboard" class="tab-content fade-in block space-y-6">
-                    <h2 class="text-3xl font-black text-coosajo-blue">Rendimiento Social</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
-                        <div class="glass-card p-6 rounded-2xl border-l-4 border-coosajo-blue">
-                            <p class="text-xs text-gray-400 font-bold uppercase mb-1">Comunidad</p>
-                            <h3 class="text-3xl font-black text-coosajo-blue" id="val-followers">0</h3>
-                        </div>
-                        <div class="glass-card p-6 rounded-2xl border-l-4 border-coosajo-green">
-                            <p class="text-xs text-gray-400 font-bold uppercase mb-1">Impresiones</p>
-                            <h3 class="text-3xl font-black text-coosajo-green" id="val-impressions">0</h3>
-                        </div>
-                        <div class="glass-card p-6 rounded-2xl border-l-4 border-coosajo-blue text-center">
-                            <p class="text-xs text-gray-400 font-bold uppercase mb-1">Interacciones</p>
-                            <h3 class="text-3xl font-black text-coosajo-blue" id="val-interactions">0</h3>
-                        </div>
-                        <div class="glass-card p-6 rounded-2xl border-l-4 border-coosajo-green">
-                            <p class="text-xs text-gray-400 font-bold uppercase mb-1">Engagement</p>
-                            <h3 class="text-3xl font-black text-gray-800" id="val-engagement">0%</h3>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 glass-card p-6 rounded-3xl h-96 shadow-lg"><canvas id="mainChart"></canvas></div>
-                        <div class="glass-card p-6 rounded-3xl space-y-4">
-                            <h3 class="font-bold text-coosajo-blue border-b pb-2 uppercase text-[10px]">Impacto Secundario</h3>
-                            <div class="grid grid-cols-2 gap-4 text-center">
-                                <div class="bg-white p-4 border rounded-xl shadow-sm"><p class="text-xl font-black text-coosajo-blue" id="val-views">0</p><p class="text-[8px] font-bold text-gray-400 uppercase">Visualizaciones</p></div>
-                                <div class="bg-white p-4 border rounded-xl shadow-sm"><p class="text-xl font-black text-coosajo-green" id="val-clicks">0</p><p class="text-[8px] font-bold text-gray-400 uppercase">Clics</p></div>
-                            </div>
-                            <div class="bg-yellow-50 p-5 rounded-2xl h-44 border border-yellow-100 overflow-y-auto">
-                                <p id="val-note-impact" class="font-handwriting text-xl text-gray-700 leading-tight"></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB DEMOGRAFÍA -->
-                <div id="tab-demografia" class="tab-content hidden fade-in space-y-6">
-                    <h2 class="text-3xl font-black text-coosajo-blue">Datos Geográficos</h2>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 text-center">
-                        <div class="glass-card p-8 rounded-3xl">
-                            <h3 class="font-bold text-coosajo-blue mb-6 self-start text-left uppercase text-xs">Departamentos Guatemala</h3>
-                            <div class="w-full max-w-sm mx-auto h-80"><canvas id="chartDepto"></canvas></div>
-                            <div id="leg-depto" class="mt-6 grid grid-cols-2 gap-2 text-[10px] font-bold text-left text-slate-500 uppercase"></div>
-                        </div>
-                        <div class="glass-card p-8 rounded-3xl text-center">
-                            <h3 class="font-bold text-coosajo-green mb-6 self-start text-left uppercase text-xs">Alcance Internacional</h3>
-                            <div class="w-full max-w-sm mx-auto h-80"><canvas id="chartPais"></canvas></div>
-                            <div id="leg-pais" class="mt-6 grid grid-cols-2 gap-2 text-[10px] font-bold text-left text-slate-500 uppercase"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB REPORTE TOP 10 -->
-                <div id="tab-reporte" class="tab-content hidden fade-in space-y-6">
-                    <h2 class="text-3xl font-black text-coosajo-blue">Top 10 Publicaciones</h2>
-                    <div id="top-posts-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-                    <div class="glass-card p-8 rounded-[2rem] bg-note border border-yellow-200">
-                        <h3 class="font-bold text-coosajo-blue mb-4 uppercase text-xs">Aprendizajes Estratégicos</h3>
-                        <p id="val-note-content" class="font-handwriting text-3xl text-gray-700 leading-relaxed"></p>
-                    </div>
-                </div>
-
-                <!-- TAB COMPARATIVA -->
-                <div id="tab-comparativa" class="tab-content hidden fade-in space-y-6">
-                    <h2 class="text-3xl font-black text-coosajo-blue">Comparativa Dinámica</h2>
-                    <div class="glass-card p-8 rounded-3xl space-y-8">
-                        <div class="flex flex-col md:flex-row gap-6 items-center">
-                            <select id="comp-1" class="flex-1 p-3 bg-gray-50 rounded-xl font-bold border outline-none" onchange="window.doCompare()"></select>
-                            <span class="font-black text-coosajo-green text-xl">VS</span>
-                            <select id="comp-2" class="flex-1 p-3 bg-gray-50 rounded-xl font-bold border outline-none" onchange="window.doCompare()"></select>
-                        </div>
-                        <table class="w-full text-left">
-                            <thead class="border-b text-coosajo-blue uppercase text-[10px] font-black">
-                                <tr><th class="p-4">Métrica</th><th class="p-4 text-center" id="cl-1">Período A</th><th class="p-4 text-center" id="cl-2">Período B</th><th class="p-4 text-center">Diferencia</th></tr>
-                            </thead>
-                            <tbody id="comp-body" class="divide-y divide-gray-50"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- TAB INGRESO MANUAL -->
-                <div id="tab-ingreso" class="tab-content hidden fade-in space-y-6 pb-20">
-                    <div class="glass-card p-10 rounded-[2.5rem] border-t-[12px] border-coosajo-green space-y-8 shadow-2xl">
-                        
-                        <div class="flex flex-col md:flex-row gap-4 items-end bg-coosajo-blue p-8 rounded-[2rem] shadow-xl">
-                            <div class="flex-1 w-full text-white">
-                                <label class="text-[10px] font-bold uppercase mb-2 block tracking-widest opacity-70">Identificador Período</label>
-                                <input type="text" id="f-week" class="w-full p-4 rounded-2xl text-gray-800 font-bold outline-none shadow-inner" placeholder="Ej: Semana Mayo Chatún">
-                            </div>
-                            <div class="w-full md:w-64 text-white">
-                                <label class="text-[10px] font-bold uppercase mb-2 block tracking-widest text-center">Calendario</label>
-                                <input type="date" id="f-date" class="w-full p-4 rounded-2xl text-gray-800 font-bold outline-none shadow-inner">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div class="glass-card p-6 rounded-2xl space-y-3 bg-white border border-gray-100">
-                                <h4 class="font-bold text-coosajo-blue border-b pb-2 uppercase text-[10px] tracking-widest">Métricas Base</h4>
-                                <input type="number" id="f-fol" placeholder="Seguidores Totales" class="w-full p-3 bg-gray-50 border rounded-xl text-sm outline-none">
-                                <input type="number" id="f-imp" placeholder="Impresiones" class="w-full p-3 bg-gray-50 border rounded-xl text-sm outline-none">
-                                <input type="number" id="f-int" placeholder="Interacciones" class="w-full p-3 bg-gray-50 border rounded-xl text-sm outline-none">
-                                <input type="number" id="f-vie" placeholder="Visualizaciones" class="w-full p-3 bg-gray-50 border rounded-xl text-sm outline-none">
-                                <input type="number" id="f-cli" placeholder="Clics Enlace" class="w-full p-3 bg-gray-50 border rounded-xl text-sm outline-none">
-                            </div>
-
-                            <div class="md:col-span-2 space-y-8">
-                                <div class="glass-card p-6 rounded-2xl bg-blue-50/50 border border-blue-100">
-                                    <h4 class="font-bold text-coosajo-blue mb-4 uppercase text-[10px] tracking-widest">Demografía Manual</h4>
-                                    <div class="flex flex-wrap gap-2 mb-4">
-                                        <select id="d-type" class="p-2.5 rounded-xl border font-bold text-xs"><option value="gua">Guatemala</option><option value="country">País</option></select>
-                                        <input type="text" id="d-label" placeholder="Nombre" class="flex-1 p-2.5 rounded-xl border text-xs">
-                                        <input type="number" id="d-val" placeholder="%" class="w-20 p-2.5 rounded-xl border text-xs">
-                                        <button onclick="window.addDemographicData()" type="button" class="bg-coosajo-blue text-white px-5 rounded-xl font-bold shadow-md hover:bg-slate-800 transition-all">+</button>
-                                    </div>
-                                    <div id="t-list" class="grid grid-cols-2 gap-2 text-[9px] max-h-32 overflow-y-auto pr-2"></div>
-                                </div>
-                                <div class="glass-card p-6 rounded-2xl border border-gray-100 shadow-sm">
-                                    <h4 class="font-bold text-coosajo-blue mb-4 uppercase text-[10px] tracking-widest">Evolución Diaria (7 días)</h4>
-                                    <div class="grid grid-cols-7 gap-1.5">
-                                        <input type="number" id="d1" placeholder="L" class="p-2 border rounded-lg text-center text-xs">
-                                        <input type="number" id="d2" placeholder="M" class="p-2 border rounded-lg text-center text-xs">
-                                        <input type="number" id="d3" placeholder="M" class="p-2 border rounded-lg text-center text-xs">
-                                        <input type="number" id="d4" placeholder="J" class="p-2 border rounded-lg text-center text-xs">
-                                        <input type="number" id="d5" placeholder="V" class="p-2 border rounded-lg text-center text-xs">
-                                        <input type="number" id="d6" placeholder="S" class="p-2 border rounded-lg text-center text-xs">
-                                        <input type="number" id="d7" placeholder="D" class="p-2 border rounded-lg text-center text-xs">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="glass-card p-6 rounded-2xl overflow-hidden border border-gray-100 shadow-lg">
-                            <h4 class="font-bold text-coosajo-blue border-b pb-4 mb-4 uppercase text-[10px]">Carga Masiva Top 10 Posts</h4>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-[10px]">
-                                    <thead class="bg-gray-50 border-b"><tr><th class="p-2">#</th><th class="p-2">Imagen</th><th class="p-2">Título</th><th class="p-2">Alcance</th><th class="p-2">Interac.</th></tr></thead>
-                                    <tbody id="top-input-body" class="divide-y"></tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <textarea id="n-impact" class="note-area p-6 rounded-3xl h-40 shadow-inner outline-none" placeholder="Notas Rendimiento Semanal..."></textarea>
-                            <textarea id="n-content" class="note-area p-6 rounded-3xl h-40 shadow-inner outline-none" placeholder="Notas Estrategia de Contenido..."></textarea>
-                        </div>
-
-                        <button onclick="window.saveFullPeriodToCloud()" class="w-full py-6 bg-gradient-to-r from-coosajo-green to-green-600 text-white font-black rounded-3xl shadow-2xl hover:translate-y-[-2px] transition-all uppercase tracking-[0.2em] text-lg">Sincronizar en Firebase Cloud</button>
-                    </div>
-                </div>
-
-                <!-- TAB ADMIN -->
-                <div id="tab-admin" class="tab-content hidden fade-in space-y-6">
-                    <h2 class="text-3xl font-black text-coosajo-blue tracking-tight">Gestión Maestra</h2>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="glass-card p-8 rounded-3xl space-y-4">
-                            <h3 class="font-bold text-coosajo-green border-b pb-2 text-[10px] uppercase tracking-widest">Añadir Colaborador</h3>
-                            <input type="text" id="adm-name" placeholder="Nombre Completo" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none">
-                            <input type="email" id="adm-email" placeholder="Usuario Corporativo" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none">
-                            <input type="password" id="adm-pass" placeholder="Contraseña Temporal" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none">
-                            <button onclick="window.registerNewCloudUser()" class="w-full py-4 bg-coosajo-blue text-white font-bold rounded-2xl shadow-lg">Crear Acceso Cloud</button>
-                        </div>
-                        <div class="lg:col-span-2 glass-card p-8 rounded-3xl overflow-hidden shadow-xl border border-gray-100">
-                            <table class="w-full text-left text-sm"><tbody id="user-list-body" class="divide-y"></tbody></table>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed top-5 right-5 bg-gray-900 text-white px-8 py-4 rounded-2xl z-[100] hidden items-center gap-4 shadow-2xl">
-        <i class="fa-solid fa-circle-check text-coosajo-green text-xl"></i><span id="toast-msg" class="font-bold"></span>
-    </div>
-
+    <!-- ======================================================= -->
+    <!-- SCRIPT PRINCIPAL E INTEGRACIÓN CON FIREBASE             -->
+    <!-- ======================================================= -->
     <script type="module">
-        // IMPORTACIONES MODULARES DE FIREBASE v11.6.1
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Importar Firebase versión modular (v10)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN DE FIREBASE 
+        // ==========================================
+        // 1. CONFIGURACIÓN DE FIREBASE
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyACfn6C6_XqLDQI29f6uHUUwlCQkSCXNYk",
             authDomain: "costos-comunicacion-digital.firebaseapp.com",
@@ -309,355 +28,674 @@
             projectId: "costos-comunicacion-digital",
             storageBucket: "costos-comunicacion-digital.firebasestorage.app",
             messagingSenderId: "299496606379",
-            appId: "1:299496606379:web:a4d6609ff79eebff0c85ee"
+            appId: "1:299496606379:web:a4d6609ff79eebff0c85ee",
+            measurementId: "G-D7GGDWSWKY"
         };
 
+        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
-        
-        // Identificador de App (Requerido para la estructura de colecciones)
-        const myAppId = typeof __app_id !== 'undefined' ? __app_id : 'costos-comunicacion-digital';
 
-        // CONFIGURACIÓN DE DOMINIO Y USUARIO MASTER
-        const DOMINIO_APP = "@micoope.coosajo.com";
-        const USUARIO_MASTER = "sjemartinez"; 
-        
-        let currentDemo = { gua: [], country: [] };
-        let charts = {};
-        let activeCloudUser = null;
+        // ==========================================
+        // 2. BASE DE DATOS Y USUARIOS
+        // ==========================================
+        const usersDB = {
+            'sjemartinez': { name: 'Elián Martínez', pass: 'Coosajo2041' },
+            'sjmsalazar': { name: 'Marco Salazar', pass: 'Coosajo2041' },
+            'sjnramirez': { name: 'Noé Ramiréz', pass: 'Coosajo2041' }
+        };
 
-        // INICIALIZACIÓN
-        document.addEventListener('DOMContentLoaded', () => {
-            initCharts();
-            renderTop10Inputs();
-            
-            document.getElementById('login-form').onsubmit = async (e) => {
-                e.preventDefault();
-                let userText = document.getElementById('login-user').value.trim();
-                const pass = document.getElementById('login-pass').value.trim();
-                
-                const finalEmail = userText.includes('@') ? userText : userText + DOMINIO_APP;
+        let appData = {};
+        let currentWeek = "";
+        let mainChart = null;
+        let compChart = null;
+        let noteTimeout = null; // Para no saturar Firebase al escribir notas
 
-                try {
-                    const userCredential = await signInWithEmailAndPassword(auth, finalEmail, pass);
-                    activeCloudUser = userCredential.user;
-                    startApplication();
-                } catch(err) {
-                    document.getElementById('login-err').innerText = "Acceso denegado: Revise su usuario o contraseña.";
-                    document.getElementById('login-err').classList.remove('hidden');
-                }
-            };
+        // ==========================================
+        // 3. ELEMENTOS DEL DOM
+        // ==========================================
+        const loginScreen = document.getElementById('login-screen');
+        const appContent = document.getElementById('app-content');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const btnLogout = document.getElementById('btn-logout');
+        const btnSaveData = document.getElementById('btn-save-data');
+        const btnClearData = document.getElementById('btn-clear-data');
+        const inputGlobalWeek = document.getElementById('global-week-selector');
+        const inputFormWeek = document.getElementById('form-week');
 
-            document.getElementById('btn-logout').onclick = () => { 
-                signOut(auth).then(() => location.reload()); 
-            };
-        });
-
-        // Escuchador de estado de autenticación por si recargan la página
-        onAuthStateChanged(auth, (user) => {
-            if(user) {
-                activeCloudUser = user;
-                startApplication();
+        // ==========================================
+        // 4. SISTEMA DE AUTENTICACIÓN
+        // ==========================================
+        function checkAuth() {
+            const loggedUser = sessionStorage.getItem('coosajo_logged_user');
+            if(loggedUser) {
+                showApp(JSON.parse(loggedUser));
+            } else {
+                loginScreen.classList.remove('hidden');
+                appContent.classList.add('hidden');
             }
-        });
-
-        function startApplication() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-content').classList.replace('hidden', 'flex');
-            
-            let displayName = activeCloudUser.email.split('@')[0];
-            document.getElementById('user-name-tag').innerText = displayName;
-
-            if(activeCloudUser.email.toLowerCase().includes(USUARIO_MASTER)) {
-                document.getElementById('nav-admin').classList.remove('hidden');
-                syncUsersList();
-            }
-            syncReportSelector();
         }
 
-        function initCharts() {
-            charts.main = new Chart(document.getElementById('mainChart').getContext('2d'), {
-                type: 'line', data: { labels: ['Lun','Mar','Mie','Jue','Vie','Sab','Dom'], datasets: [{ label: 'Imp', data: [], borderColor: '#158e45', tension: 0.4, fill: true, backgroundColor: 'rgba(21, 142, 69, 0.05)', borderWidth: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false }
+        window.handleLogin = function(e) {
+            e.preventDefault();
+            const userBox = document.getElementById('login-user').value.trim();
+            const passBox = document.getElementById('login-pass').value.trim();
+
+            if(usersDB[userBox] && usersDB[userBox].pass === passBox) {
+                const userObj = { username: userBox, name: usersDB[userBox].name };
+                sessionStorage.setItem('coosajo_logged_user', JSON.stringify(userObj));
+                loginError.classList.add('hidden');
+                loginForm.reset();
+                showApp(userObj);
+            } else {
+                loginError.classList.remove('hidden');
+            }
+        };
+
+        // Asignar el submit al form (como el HTML original usaba onsubmit)
+        loginForm.addEventListener('submit', window.handleLogin);
+
+        window.handleLogout = function() {
+            sessionStorage.removeItem('coosajo_logged_user');
+            loginScreen.classList.remove('hidden');
+            appContent.classList.add('hidden');
+            appContent.classList.remove('flex');
+        };
+
+        btnLogout.addEventListener('click', window.handleLogout);
+
+        function showApp(user) {
+            loginScreen.classList.add('hidden');
+            appContent.classList.remove('hidden');
+            appContent.classList.add('flex');
+            
+            const names = user.name.split(' ');
+            const initials = names.length > 1 ? (names[0][0] + names[1][0]).toUpperCase() : names[0][0].toUpperCase();
+            document.querySelectorAll('.user-initial-badge').forEach(el => {
+                el.innerText = initials;
+                el.title = `Cerrar Sesión (${user.name})`;
             });
-            const pCfg = (colors) => ({ type: 'doughnut', data: { labels: [], datasets: [{ data: [], backgroundColor: colors, borderWidth: 0 }] }, options: { responsive: true, cutout: '75%', plugins: { legend: { display: false } } } });
-            charts.gua = new Chart(document.getElementById('chartDepto'), pCfg(['#172e59', '#158e45', '#334155', '#fbbf24', '#f87171', '#818cf8']));
-            charts.country = new Chart(document.getElementById('chartPais'), pCfg(['#158e45', '#172e59', '#6366f1', '#f59e0b', '#ec4899', '#94a3b8']));
+            
+            loadDataFromFirebase();
         }
 
-        function syncReportSelector() {
-            const reportesRef = collection(db, 'artifacts', myAppId, 'public', 'data', 'reportes');
-            onSnapshot(reportesRef, (snap) => {
-                let docs = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                // Ordenar en memoria (Para cumplir reglas anti-índices)
-                docs.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-                let optionsHTML = '<option value="">Seleccionar Período</option>';
-                docs.forEach(d => { 
-                    optionsHTML += `<option value="${d.id}">${d.name} (${d.date})</option>`; 
+        // ==========================================
+        // 5. CARGA DE DATOS DESDE FIREBASE
+        // ==========================================
+        async function loadDataFromFirebase() {
+            try {
+                // Obtener datos de la colección "reportes"
+                const querySnapshot = await getDocs(collection(db, "reportes"));
+                appData = {};
+                
+                querySnapshot.forEach((doc) => {
+                    appData[doc.id] = doc.data();
                 });
 
-                document.getElementById('global-week-selector').innerHTML = optionsHTML;
-                
-                // Asegurar que las listas comparativas también se actualicen
-                if(document.getElementById('comp-1')) document.getElementById('comp-1').innerHTML = optionsHTML;
-                if(document.getElementById('comp-2')) document.getElementById('comp-2').innerHTML = optionsHTML;
-            }, (err) => console.error(err));
+                // MIGRACIÓN: Si Firebase está vacío pero hay datos en localStorage, súbelos.
+                const localData = JSON.parse(localStorage.getItem('coosajo_dashboard_data'));
+                if (localData && Object.keys(appData).length === 0) {
+                    console.log("Migrando datos locales a Firebase...");
+                    for (const key in localData) {
+                        appData[key] = localData[key];
+                        await setDoc(doc(db, "reportes", key), localData[key]);
+                    }
+                    showToast("¡Tus datos locales fueron respaldados en la nube!");
+                }
+
+                // Configurar período inicial
+                const keys = Object.keys(appData);
+                currentWeek = keys.length > 0 ? keys[keys.length - 1] : ""; // Toma el último
+
+                initAppData();
+
+            } catch (error) {
+                console.error("Error cargando Firebase: ", error);
+                alert("Error al conectar con la base de datos. Verifica tu configuración de Firebase.");
+            }
         }
 
-        window.loadPeriodFromCloud = async function(id) {
-            if(!id) return;
-            const docRef = doc(db, 'artifacts', myAppId, 'public', 'data', 'reportes', id);
-            const docSnap = await getDoc(docRef);
+        function initAppData() {
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            renderTopPostsInput();
+            updatePeriodDatalist();
             
-            if (!docSnap.exists()) return;
-            const d = docSnap.data();
-            
-            document.getElementById('val-followers').innerText = d.metrics.followers.toLocaleString();
-            document.getElementById('val-impressions').innerText = d.metrics.impressions.toLocaleString();
-            document.getElementById('val-interactions').innerText = d.metrics.interactions.toLocaleString();
-            document.getElementById('val-engagement').innerText = d.metrics.engagement + "%";
-            document.getElementById('val-views').innerText = d.metrics.views.toLocaleString();
-            document.getElementById('val-clicks').innerText = d.metrics.clicks.toLocaleString();
-            document.getElementById('val-note-impact').innerText = d.notes.impact;
-            document.getElementById('val-note-content').innerText = d.notes.content;
-            
-            charts.main.data.datasets[0].data = d.daily || []; charts.main.update();
-            
-            ['gua', 'country'].forEach(type => {
-                if(d.demographics && d.demographics[type]){
-                    charts[type].data.labels = d.demographics[type].map(i => i.l);
-                    charts[type].data.datasets[0].data = d.demographics[type].map(i => i.v);
-                    charts[type].update();
-                    const leg = document.getElementById('leg-'+(type==='gua'?'depto':'pais'));
-                    leg.innerHTML = d.demographics[type].map((i, idx) => `<div><span style="color:${charts[type].data.datasets[0].backgroundColor[idx % 6]}">●</span> ${i.l}: ${i.v}%</div>`).join('');
-                }
-            });
+            if(currentWeek) {
+                inputGlobalWeek.value = currentWeek;
+                inputFormWeek.value = currentWeek;
+                if(!mainChart) initChart();
+                window.loadWeekData(currentWeek);
+            }
+        }
 
-            const grid = document.getElementById('top-posts-grid');
-            if(d.topPosts) {
-                grid.innerHTML = d.topPosts.filter(p => p.title).map((p, i) => `
-                    <div class="glass-card rounded-2xl flex overflow-hidden h-32 border shadow-md">
-                        <div class="w-32 bg-gray-50 flex items-center justify-center overflow-hidden"><img src="${p.img || ''}" class="object-cover h-full w-full" onerror="this.src='https://placehold.co/100x100/e2e8f0/172e59?text=Post'"></div>
-                        <div class="p-4 flex-1">
-                            <p class="text-[9px] font-black text-coosajo-green uppercase tracking-tighter">Micoope Top #${i+1}</p>
-                            <h4 class="font-bold text-coosajo-blue line-clamp-1 text-xs uppercase">${p.title}</h4>
-                            <div class="grid grid-cols-2 gap-2 mt-2 text-[8px] font-bold text-gray-400 uppercase">
-                                <div class="bg-gray-50 p-1 rounded">Alcance: ${parseInt(p.reach).toLocaleString()}</div>
-                                <div class="bg-gray-50 p-1 rounded">Interac.: ${parseInt(p.inter).toLocaleString()}</div>
-                            </div>
+        // ==========================================
+        // 6. RENDERIZADO DINÁMICO (TOP 10 INPUT)
+        // ==========================================
+        function renderTopPostsInput() {
+            const tbody = document.getElementById('top-posts-input-body');
+            tbody.innerHTML = '';
+            for(let i=0; i<10; i++) {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50";
+                tr.innerHTML = `
+                    <td class="p-3 text-gray-400 font-bold">${i+1}</td>
+                    <td class="p-3">
+                        <div class="flex items-center gap-2">
+                            <img id="p-img-prev-${i}" class="img-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>">
+                            <input type="file" accept="image/*" class="text-[10px] w-24" onchange="window.compressAndPreview(this, ${i})">
+                            <input type="hidden" id="p-img-data-${i}">
                         </div>
-                    </div>`).join('');
+                    </td>
+                    <td class="p-3"><input type="text" id="p-title-${i}" class="w-48 p-2 border border-gray-200 rounded outline-none text-xs" placeholder="Título corto"></td>
+                    <td class="p-3"><input type="number" id="p-reach-${i}" class="w-24 p-2 border border-gray-200 rounded outline-none text-xs" placeholder="Alcance"></td>
+                    <td class="p-3"><input type="number" id="p-imp-${i}" class="w-24 p-2 border border-gray-200 rounded outline-none text-xs" placeholder="Impres."></td>
+                    <td class="p-3"><input type="number" id="p-int-${i}" class="w-24 p-2 border border-gray-200 rounded outline-none text-xs" placeholder="Interac."></td>
+                    <td class="p-3"><input type="number" step="0.01" id="p-eng-${i}" class="w-20 p-2 border border-gray-200 rounded outline-none text-xs" placeholder="Eng. %"></td>
+                `;
+                tbody.appendChild(tr);
             }
-        }
-
-        window.saveFullPeriodToCloud = async function() {
-            if(!activeCloudUser) return;
-            const n = document.getElementById('f-week').value, dt = document.getElementById('f-date').value;
-            if(!n || !dt) {
-                showToast("Falta Identificador o Fecha");
-                return;
-            }
-            
-            const tp = [];
-            for(let i=0; i<10; i++){
-                tp.push({
-                    title: document.getElementById('tp-t-'+i).value,
-                    reach: document.getElementById('tp-r-'+i).value || 0,
-                    inter: document.getElementById('tp-i-'+i).value || 0,
-                    img: document.getElementById('tp-img-data-'+i).value
-                });
-            }
-            
-            const payload = {
-                name: n, date: dt,
-                metrics: {
-                    followers: parseInt(document.getElementById('f-fol').value)||0,
-                    impressions: parseInt(document.getElementById('f-imp').value)||0,
-                    interactions: parseInt(document.getElementById('f-int').value)||0,
-                    views: parseInt(document.getElementById('f-vie').value)||0,
-                    clicks: parseInt(document.getElementById('f-cli').value)||0,
-                    engagement: ((parseInt(document.getElementById('f-int').value)||0) / (parseInt(document.getElementById('f-imp').value)||1) * 100).toFixed(2)
-                },
-                daily: [1,2,3,4,5,6,7].map(i => parseInt(document.getElementById('d'+i).value)||0),
-                demographics: JSON.parse(JSON.stringify(currentDemo)),
-                topPosts: tp,
-                notes: { impact: document.getElementById('n-impact').value, content: document.getElementById('n-content').value }
-            };
-            
-            try {
-                const reportesRef = collection(db, 'artifacts', myAppId, 'public', 'data', 'reportes');
-                await addDoc(reportesRef, payload);
-                showToast("Reporte Guardado Correctamente");
-                
-                // Reiniciar formulario
-                currentDemo = { gua: [], country: [] }; 
-                document.getElementById('t-list').innerHTML = "";
-                switchTab('dashboard');
-            } catch(e) {
-                console.error("Error al guardar: ", e);
-                showToast("Error al sincronizar");
-            }
-        }
-
-        window.addDemographicData = function() {
-            const t = document.getElementById('d-type').value;
-            const l = document.getElementById('d-label').value;
-            const v = parseInt(document.getElementById('d-val').value);
-            if(!l || isNaN(v)) return;
-            
-            currentDemo[t].push({l, v});
-            document.getElementById('t-list').innerHTML += `<div class="bg-white p-2 border rounded-xl text-[8px] uppercase font-bold shadow-sm"><b>${t}:</b> ${l} (${v}%)</div>`;
-            document.getElementById('d-label').value = ""; document.getElementById('d-val').value = "";
-        }
-
-        window.registerNewCloudUser = async function() {
-            if(!activeCloudUser) return;
-            const n = document.getElementById('adm-name').value;
-            const e = document.getElementById('adm-email').value;
-            const p = document.getElementById('adm-pass').value;
-            
-            if(!n || !e || !p) {
-                showToast("Por favor complete todos los campos");
-                return;
-            }
-            
-            // Si el usuario corporativo no tiene dominio, se lo agregamos
-            const finalEmail = e.includes('@') ? e : e + DOMINIO_APP;
-            
-            try {
-                // Truco: Para no cerrar la sesión actual del administrador al crear un usuario,
-                // inicializamos una App secundaria temporal en Firebase.
-                const tempAppName = "TempApp_" + Date.now();
-                const tempApp = initializeApp(firebaseConfig, tempAppName);
-                const tempAuth = getAuth(tempApp);
-                
-                // 1. Crear el usuario en Firebase Authentication
-                await createUserWithEmailAndPassword(tempAuth, finalEmail, p);
-                
-                // Deslogueamos la app temporal inmediatamente
-                await signOut(tempAuth);
-
-                // 2. Guardar el registro en Firestore para la lista de usuarios
-                const usersRef = collection(db, 'artifacts', myAppId, 'public', 'data', 'users');
-                await addDoc(usersRef, { name: n, email: finalEmail.toLowerCase() });
-                
-                showToast("Usuario Creado con Éxito");
-                
-                // Limpiamos los inputs del formulario
-                document.getElementById('adm-name').value = "";
-                document.getElementById('adm-email').value = "";
-                document.getElementById('adm-pass').value = "";
-                
-            } catch(error) {
-                console.error(error);
-                if(error.code === 'auth/email-already-in-use') {
-                    showToast("El correo ya está registrado");
-                } else if(error.code === 'auth/weak-password') {
-                    showToast("La contraseña es muy corta (Mín. 6)");
-                } else {
-                    showToast("Error al crear usuario en Auth");
-                }
-            }
-        }
-
-        function syncUsersList() {
-            const usersRef = collection(db, 'artifacts', myAppId, 'public', 'data', 'users');
-            onSnapshot(usersRef, (snap) => {
-                const b = document.getElementById('user-list-body');
-                b.innerHTML = '';
-                snap.forEach(documento => { 
-                    b.innerHTML += `<tr class="bg-white"><td class="p-4 font-bold uppercase text-[10px] text-coosajo-blue">${documento.data().name}</td><td class="p-4 text-gray-500 text-xs">${documento.data().email}</td></tr>`; 
-                });
-            }, (err) => console.error(err));
-        }
-
-        function renderTop10Inputs() {
-            const b = document.getElementById('top-input-body');
-            b.innerHTML = Array.from({length:10}, (_, i) => `
-                <tr><td class="p-2">${i+1}</td>
-                    <td class="p-2 text-center"><img id="tp-img-prev-${i}" class="img-preview mb-1 mx-auto"><input type="file" class="text-[7px] w-14" onchange="window.compressAndPreview(this, ${i})"><input type="hidden" id="tp-img-data-${i}"></td>
-                    <td class="p-2"><input type="text" id="tp-t-${i}" class="w-full border p-2 rounded-xl text-[10px]"></td>
-                    <td class="p-2"><input type="number" id="tp-r-${i}" class="w-full border p-2 rounded-xl text-[10px]"></td>
-                    <td class="p-2"><input type="number" id="tp-i-${i}" class="w-full border p-2 rounded-xl text-[10px]"></td>
-                </tr>`).join('');
         }
 
         window.compressAndPreview = function(input, index) {
-            const file = input.files[0]; if(!file) return;
+            const file = input.files[0];
+            if(!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_W = 200; const sc = MAX_W / img.width;
-                    canvas.width = MAX_W; canvas.height = img.height * sc;
+                    const MAX_WIDTH = 250;
+                    const scale = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scale;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    const b64 = canvas.toDataURL('image/jpeg', 0.6);
-                    document.getElementById('tp-img-prev-'+index).src = b64;
-                    document.getElementById('tp-img-data-'+index).value = b64;
-                }; img.src = e.target.result;
-            }; reader.readAsDataURL(file);
+                    const base64 = canvas.toDataURL('image/jpeg', 0.6);
+                    document.getElementById(`p-img-prev-${index}`).src = base64;
+                    document.getElementById(`p-img-data-${index}`).value = base64;
+                }
+                img.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
         }
 
-        window.switchTab = function(id) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.getElementById('tab-' + id).classList.remove('hidden');
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('nav-' + id).classList.add('active');
+        // ==========================================
+        // 7. RENDERIZADO DINÁMICO (TOP 10 DISPLAY)
+        // ==========================================
+        function renderTopPostsDisplay(posts) {
+            const grid = document.getElementById('top-posts-display-grid');
+            grid.innerHTML = '';
+            if(!posts || posts.length === 0) return;
+
+            posts.forEach((p, i) => {
+                if(!p.title && !p.reach && !p.impressions) return;
+                const imgSrc = p.image || `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='1'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>`;
+
+                const html = `
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition">
+                    <div class="w-full sm:w-1/3 bg-gray-50 flex items-center justify-center p-2 min-h-[120px]">
+                        <img src="${imgSrc}" class="w-full h-full max-h-32 object-contain rounded-lg shadow-sm">
+                    </div>
+                    <div class="p-4 w-full sm:w-2/3 flex flex-col justify-between">
+                        <div>
+                            <span class="bg-coosajo-lightGreen text-coosajo-green text-[10px] font-bold px-2 py-0.5 rounded-full mb-2 inline-block">Top #${i+1}</span>
+                            <h4 class="font-bold text-coosajo-blue text-sm leading-tight mb-3">${p.title || 'Post sin título'}</h4>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-auto">
+                            <div class="bg-gray-50 rounded p-2 text-center border border-gray-100">
+                                <p class="text-[9px] text-gray-500 uppercase font-bold">Alcance</p>
+                                <p class="font-black text-gray-800 text-sm">${Number(p.reach).toLocaleString()}</p>
+                            </div>
+                            <div class="bg-gray-50 rounded p-2 text-center border border-gray-100">
+                                <p class="text-[9px] text-gray-500 uppercase font-bold">Impresiones</p>
+                                <p class="font-black text-gray-800 text-sm">${Number(p.impressions).toLocaleString()}</p>
+                            </div>
+                            <div class="bg-gray-50 rounded p-2 text-center border border-gray-100">
+                                <p class="text-[9px] text-gray-500 uppercase font-bold">Interacciones</p>
+                                <p class="font-black text-coosajo-blue text-sm">${Number(p.interactions).toLocaleString()}</p>
+                            </div>
+                            <div class="bg-coosajo-lightGreen rounded p-2 text-center border border-green-100">
+                                <p class="text-[9px] text-coosajo-green uppercase font-bold">Eng.</p>
+                                <p class="font-black text-coosajo-green text-sm">${p.engagement}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                grid.insertAdjacentHTML('beforeend', html);
+            });
         }
 
-        function showToast(m) {
-            const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = m;
-            t.classList.replace('hidden', 'flex'); setTimeout(() => { t.classList.replace('flex', 'hidden'); }, 3500);
-        }
-
-        window.doCompare = async function() {
-            const k1 = document.getElementById('comp-1').value;
-            const k2 = document.getElementById('comp-2').value;
-            const b = document.getElementById('comp-body');
+        // ==========================================
+        // 8. LÓGICA PRINCIPAL DEL DASHBOARD
+        // ==========================================
+        function updatePeriodDatalist() {
+            const list = document.getElementById('period-list');
+            const sel1 = document.getElementById('comp-period-1');
+            const sel2 = document.getElementById('comp-period-2');
             
-            if(!k1 || !k2) return;
+            list.innerHTML = '';
+            if(sel1) sel1.innerHTML = '<option value="">Seleccione Período A</option>';
+            if(sel2) sel2.innerHTML = '<option value="">Seleccione Período B</option>';
             
-            document.getElementById('cl-1').innerText = "Cargando...";
-            document.getElementById('cl-2').innerText = "Cargando...";
+            const keys = Object.keys(appData);
 
-            try {
-                const doc1Ref = doc(db, 'artifacts', myAppId, 'public', 'data', 'reportes', k1);
-                const doc2Ref = doc(db, 'artifacts', myAppId, 'public', 'data', 'reportes', k2);
-                
-                const [snap1, snap2] = await Promise.all([getDoc(doc1Ref), getDoc(doc2Ref)]);
-                
-                if(!snap1.exists() || !snap2.exists()) return;
+            keys.forEach(key => {
+                let opt = document.createElement('option');
+                opt.value = key;
+                list.appendChild(opt);
 
-                const d1 = snap1.data();
-                const d2 = snap2.data();
-                const m1 = d1.metrics;
-                const m2 = d2.metrics;
-                
-                document.getElementById('cl-1').innerText = d1.name;
-                document.getElementById('cl-2').innerText = d2.name;
+                if(sel1) { let o1 = document.createElement('option'); o1.value = key; o1.text = key; sel1.appendChild(o1); }
+                if(sel2) { let o2 = document.createElement('option'); o2.value = key; o2.text = key; sel2.appendChild(o2); }
+            });
 
-                const items = [
-                    {l: 'Seguidores', v1: m1.followers, v2: m2.followers}, 
-                    {l: 'Impresiones', v1: m1.impressions, v2: m2.impressions}, 
-                    {l: 'Interacciones', v1: m1.interactions, v2: m2.interactions}, 
-                    {l: 'Engagement', v1: parseFloat(m1.engagement), v2: parseFloat(m2.engagement), p: true}, 
-                    {l: 'Vis.', v1: m1.views, v2: m2.views}, 
-                    {l: 'Clics', v1: m1.clicks, v2: m2.clicks}
-                ];
-
-                b.innerHTML = items.map(i => {
-                    const diff = i.v2 - i.v1;
-                    return `<tr><td class="p-4 font-bold text-gray-600 text-xs">${i.l}</td><td class="p-4 text-center text-xs">${i.v1.toLocaleString()}${i.p?'%':''}</td><td class="p-4 text-center font-bold text-coosajo-blue text-xs">${i.v2.toLocaleString()}${i.p?'%':''}</td><td class="p-4 text-center font-bold text-xs ${diff>=0?'text-green-600':'text-red-500'}">${diff>0?'+':''}${i.p?parseFloat(diff).toFixed(2):diff.toLocaleString()}${i.p?'%':''}</td></tr>`;
-                }).join('');
-
-            } catch (error) {
-                console.error("Error al comparar: ", error);
+            if (sel1 && sel2 && keys.length > 0) {
+                if (keys.length >= 2) {
+                    sel1.value = keys[keys.length - 2]; 
+                    sel2.value = keys[keys.length - 1]; 
+                } else {
+                    sel1.value = keys[0];
+                    sel2.value = keys[0];
+                }
+                window.renderComparativa();
             }
         }
+
+        window.loadWeekData = function(weekStr) {
+            currentWeek = weekStr;
+            inputGlobalWeek.value = weekStr; 
+            inputFormWeek.value = weekStr; 
+            document.getElementById('dash-week-label').innerText = `Mostrando datos de: ${weekStr}`;
+
+            const data = appData[weekStr];
+
+            if (data) {
+                document.getElementById('val-followers').innerText = (data.metrics.followers >= 1000 ? (data.metrics.followers/1000).toFixed(2)+'K' : data.metrics.followers);
+                
+                const g = data.metrics.gained || 0;
+                const l = data.metrics.lost || 0;
+                document.getElementById('val-gained').innerText = g;
+                document.getElementById('val-lost').innerText = l;
+                document.getElementById('val-net').innerText = (g - l > 0 ? '+' : '') + (g - l);
+
+                document.getElementById('val-impressions').innerText = (data.metrics.impressions >= 1000 ? (data.metrics.impressions/1000).toFixed(2)+'K' : data.metrics.impressions);
+                document.getElementById('val-interactions').innerText = (data.metrics.interactions >= 1000 ? (data.metrics.interactions/1000).toFixed(2)+'K' : data.metrics.interactions);
+                document.getElementById('val-engagement').innerText = data.metrics.engagement;
+                document.getElementById('val-posts').innerText = data.metrics.posts;
+                document.getElementById('val-views').innerText = (data.metrics.views >= 1000 ? (data.metrics.views/1000).toFixed(2)+'K' : data.metrics.views);
+                document.getElementById('val-reactions').innerText = data.metrics.reactions.toLocaleString();
+                document.getElementById('val-clicks').innerText = data.metrics.clicks.toLocaleString();
+
+                updateChartData(data.daily);
+
+                document.getElementById('note-impresiones').value = data.notes["note-impresiones"] || "";
+                document.getElementById('note-interaccion').value = data.notes["note-interaccion"] || "";
+                document.getElementById('note-contenido').value = data.notes["note-contenido"] || "";
+
+                renderTopPostsDisplay(data.topPosts);
+
+            } else {
+                ['followers', 'impressions', 'interactions', 'engagement', 'posts', 'views', 'reactions', 'clicks', 'gained', 'lost', 'net'].forEach(id => {
+                    let el = document.getElementById('val-' + id);
+                    if(el) el.innerText = "-";
+                });
+                updateChartData([0,0,0,0,0,0,0]);
+                document.querySelectorAll('.note-area').forEach(el => el.value = "");
+                renderTopPostsDisplay([]);
+            }
+            
+            loadFormForWeek(weekStr);
+        }
+
+        // ==========================================
+        // 9. GUARDADO EN FIREBASE
+        // ==========================================
+        window.saveNotes = function() {
+            if (!currentWeek) return;
+            if (!appData[currentWeek]) {
+                appData[currentWeek] = { metrics: {}, daily: [], notes: {}, topPosts: [] };
+                updatePeriodDatalist(); 
+            }
+            
+            appData[currentWeek].notes["note-impresiones"] = document.getElementById('note-impresiones').value;
+            appData[currentWeek].notes["note-interaccion"] = document.getElementById('note-interaccion').value;
+            appData[currentWeek].notes["note-contenido"] = document.getElementById('note-contenido').value;
+            
+            // Retrasar el guardado a Firebase para no saturar con cada pulsación de tecla
+            clearTimeout(noteTimeout);
+            noteTimeout = setTimeout(async () => {
+                try {
+                    await setDoc(doc(db, "reportes", currentWeek), appData[currentWeek]);
+                    console.log("Notas guardadas en Firebase.");
+                } catch (e) { console.error("Error guardando notas", e); }
+            }, 1500);
+        }
+
+        document.querySelectorAll('.note-area').forEach(textarea => {
+            textarea.addEventListener('input', window.saveNotes);
+        });
+
+        inputGlobalWeek.addEventListener('change', (e) => window.loadWeekData(e.target.value));
+        inputFormWeek.addEventListener('change', (e) => loadFormForWeek(e.target.value));
+
+        function loadFormForWeek(weekStr) {
+            const data = appData[weekStr];
+            if (data && data.metrics) {
+                document.getElementById('form-followers').value = data.metrics.followers || '';
+                document.getElementById('form-gained').value = data.metrics.gained || '';
+                document.getElementById('form-lost').value = data.metrics.lost || '';
+                document.getElementById('form-impressions').value = data.metrics.impressions || '';
+                document.getElementById('form-interactions').value = data.metrics.interactions || '';
+                document.getElementById('form-engagement').value = data.metrics.engagement || '';
+                document.getElementById('form-posts').value = data.metrics.posts || '';
+                document.getElementById('form-views').value = data.metrics.views || '';
+                document.getElementById('form-reactions').value = data.metrics.reactions || '';
+                document.getElementById('form-clicks').value = data.metrics.clicks || '';
+                for(let i=1; i<=7; i++) document.getElementById('d'+i).value = data.daily[i-1] || 0;
+                
+                const posts = data.topPosts || [];
+                for(let i=0; i<10; i++) {
+                    const p = posts[i] || {};
+                    document.getElementById(`p-title-${i}`).value = p.title || '';
+                    document.getElementById(`p-reach-${i}`).value = p.reach || '';
+                    document.getElementById(`p-imp-${i}`).value = p.impressions || '';
+                    document.getElementById(`p-int-${i}`).value = p.interactions || '';
+                    document.getElementById(`p-eng-${i}`).value = p.engagement || '';
+                    document.getElementById(`p-img-data-${i}`).value = p.image || '';
+                    
+                    const defaultImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>";
+                    document.getElementById(`p-img-prev-${i}`).src = p.image ? p.image : defaultImg;
+                }
+            } else {
+                document.getElementById('manual-data-form').reset();
+                document.getElementById('form-week').value = weekStr;
+                for(let i=0; i<10; i++) {
+                    document.getElementById(`p-img-prev-${i}`).src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>";
+                    document.getElementById(`p-img-data-${i}`).value = "";
+                }
+            }
+        }
+
+        btnSaveData.addEventListener('click', async () => {
+            const weekToSave = inputFormWeek.value.trim();
+            if(!weekToSave) { alert("Por favor asigna un nombre al período (Ej: 20-27 Abr)."); return; }
+
+            const existingNotes = appData[weekToSave] ? appData[weekToSave].notes : {};
+            
+            const topPostsArray = [];
+            for(let i=0; i<10; i++) {
+                topPostsArray.push({
+                    title: document.getElementById(`p-title-${i}`).value,
+                    reach: Number(document.getElementById(`p-reach-${i}`).value) || 0,
+                    impressions: Number(document.getElementById(`p-imp-${i}`).value) || 0,
+                    interactions: Number(document.getElementById(`p-int-${i}`).value) || 0,
+                    engagement: Number(document.getElementById(`p-eng-${i}`).value) || 0,
+                    image: document.getElementById(`p-img-data-${i}`).value
+                });
+            }
+
+            const newData = {
+                metrics: {
+                    followers: Number(document.getElementById('form-followers').value) || 0,
+                    gained: Number(document.getElementById('form-gained').value) || 0,
+                    lost: Number(document.getElementById('form-lost').value) || 0,
+                    impressions: Number(document.getElementById('form-impressions').value) || 0,
+                    interactions: Number(document.getElementById('form-interactions').value) || 0,
+                    engagement: Number(document.getElementById('form-engagement').value) || 0,
+                    posts: Number(document.getElementById('form-posts').value) || 0,
+                    views: Number(document.getElementById('form-views').value) || 0,
+                    reactions: Number(document.getElementById('form-reactions').value) || 0,
+                    clicks: Number(document.getElementById('form-clicks').value) || 0
+                },
+                daily: [
+                    Number(document.getElementById('d1').value)||0, Number(document.getElementById('d2').value)||0,
+                    Number(document.getElementById('d3').value)||0, Number(document.getElementById('d4').value)||0,
+                    Number(document.getElementById('d5').value)||0, Number(document.getElementById('d6').value)||0,
+                    Number(document.getElementById('d7').value)||0
+                ],
+                notes: existingNotes,
+                topPosts: topPostsArray
+            };
+
+            // Modificar memoria local y guardar en Firebase
+            appData[weekToSave] = newData;
+
+            try {
+                // Almacenamiento en Firestore
+                await setDoc(doc(db, "reportes", weekToSave), newData);
+                
+                updatePeriodDatalist(); 
+                if(weekToSave === currentWeek || currentWeek === "") {
+                    window.loadWeekData(weekToSave);
+                }
+
+                showToast(`Datos guardados en la Nube: ${weekToSave}`);
+                window.switchTab('dashboard'); 
+            } catch (error) {
+                console.error("Error guardando en Firebase: ", error);
+                alert("Error al guardar en la nube.");
+            }
+        });
+
+        btnClearData.addEventListener('click', async () => {
+            if(confirm("¿Estás seguro de borrar todo el historial de LA NUBE? Esto no se puede deshacer y afectará a todos los usuarios.")) {
+                try {
+                    // Borrar todos los documentos de Firestore
+                    const querySnapshot = await getDocs(collection(db, "reportes"));
+                    querySnapshot.forEach(async (document) => {
+                        await deleteDoc(doc(db, "reportes", document.id));
+                    });
+
+                    appData = {};
+                    updatePeriodDatalist();
+                    inputGlobalWeek.value = "";
+                    window.loadWeekData("");
+                    showToast("Historial eliminado de la nube completamente.");
+                } catch (error) {
+                    console.error("Error borrando datos de Firebase: ", error);
+                    alert("Ocurrió un error al intentar borrar los datos.");
+                }
+            }
+        });
+
+        // ==========================================
+        // 10. GRÁFICOS Y COMPARATIVA
+        // ==========================================
+        function initChart() {
+            const ctx = document.getElementById('mainEvolucionChart').getContext('2d');
+            let gradientGreen = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientGreen.addColorStop(0, 'rgba(21, 142, 69, 0.5)');
+            gradientGreen.addColorStop(1, 'rgba(21, 142, 69, 0.0)');
+
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                    datasets: [{
+                        label: 'Impresiones',
+                        data: [0,0,0,0,0,0,0],
+                        borderColor: '#158e45',
+                        backgroundColor: gradientGreen,
+                        borderWidth: 4,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#158e45',
+                        pointBorderWidth: 3,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        fill: true,
+                        tension: 0.4 
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#172e59', padding: 12, cornerRadius: 8 } },
+                    scales: {
+                        y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(0,0,0,0.03)' } },
+                        x: { grid: { display: false }, border: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function updateChartData(dailyData) {
+            if(mainChart) {
+                mainChart.data.datasets[0].data = dailyData;
+                mainChart.update();
+            }
+        }
+
+        window.renderComparativa = function() {
+            const p1 = document.getElementById('comp-period-1').value;
+            const p2 = document.getElementById('comp-period-2').value;
+            const tbody = document.getElementById('comp-table-body');
+            const chartContainer = document.getElementById('comp-chart-container');
+            
+            document.getElementById('comp-label-1').innerText = p1 || 'Período A';
+            document.getElementById('comp-label-2').innerText = p2 || 'Período B';
+
+            if(!p1 || !p2 || !appData[p1] || !appData[p2]) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400 font-medium">Selecciona dos períodos válidos en los menús de arriba para comparar.</td></tr>';
+                chartContainer.classList.add('hidden');
+                return;
+            }
+
+            chartContainer.classList.remove('hidden');
+
+            const m1 = appData[p1].metrics;
+            const m2 = appData[p2].metrics;
+            const d1 = appData[p1].daily || [0,0,0,0,0,0,0];
+            const d2 = appData[p2].daily || [0,0,0,0,0,0,0];
+
+            const ctxComp = document.getElementById('compEvolucionChart').getContext('2d');
+            if(!compChart) {
+                compChart = new Chart(ctxComp, {
+                    type: 'line',
+                    data: {
+                        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                        datasets: [
+                            {
+                                label: p1,
+                                data: d1,
+                                borderColor: '#94a3b8',
+                                backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                                borderWidth: 3,
+                                pointBackgroundColor: '#ffffff',
+                                pointBorderColor: '#94a3b8',
+                                pointRadius: 4,
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: p2,
+                                data: d2,
+                                borderColor: '#158e45',
+                                backgroundColor: 'rgba(21, 142, 69, 0.15)',
+                                borderWidth: 3,
+                                pointBackgroundColor: '#ffffff',
+                                pointBorderColor: '#158e45',
+                                pointRadius: 5,
+                                fill: true,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: {family: 'Inter', weight: 'bold'} } }, tooltip: { backgroundColor: '#172e59', padding: 12, cornerRadius: 8, titleFont: {family: 'Inter'}, bodyFont: {family: 'Inter'} } },
+                        scales: { y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(0,0,0,0.03)' } }, x: { grid: { display: false }, border: { display: false } } }
+                    }
+                });
+            } else {
+                compChart.data.datasets[0].label = p1;
+                compChart.data.datasets[0].data = d1;
+                compChart.data.datasets[1].label = p2;
+                compChart.data.datasets[1].data = d2;
+                compChart.update();
+            }
+
+            const compareKeys = [
+                { label: 'Seguidores Totales', key: 'followers' },
+                { label: 'Seguidores Ganados', key: 'gained' },
+                { label: 'Seguidores Perdidos', key: 'lost', invertColor: true },
+                { label: 'Crecimiento Neto (Ganados - Perdidos)', key: 'net' },
+                { label: 'Impresiones', key: 'impressions' },
+                { label: 'Interacciones', key: 'interactions' },
+                { label: 'Engagement Rate', key: 'engagement' },
+                { label: 'Posts Totales', key: 'posts' },
+                { label: 'Visualizaciones', key: 'views' },
+                { label: 'Reacciones', key: 'reactions' },
+                { label: 'Clics', key: 'clicks' }
+            ];
+
+            tbody.innerHTML = '';
+            compareKeys.forEach(item => {
+                let val1 = item.key === 'net' ? ((m1.gained||0) - (m1.lost||0)) : (m1[item.key] || 0);
+                let val2 = item.key === 'net' ? ((m2.gained||0) - (m2.lost||0)) : (m2[item.key] || 0);
+                
+                let diff = val2 - val1;
+                if(item.key === 'engagement') diff = parseFloat(diff.toFixed(2));
+                
+                let diffText = diff > 0 ? `+${diff.toLocaleString()}` : diff.toLocaleString();
+                
+                let colorClass = 'text-gray-500 bg-gray-50';
+                if (diff > 0) colorClass = item.invertColor ? 'text-red-500 bg-red-50' : 'text-green-600 bg-green-50';
+                else if (diff < 0) colorClass = item.invertColor ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-50">
+                        <td class="p-4 font-bold text-gray-600 border-r border-gray-100">${item.label}</td>
+                        <td class="p-4 text-center font-medium border-r border-gray-100">${val1.toLocaleString()}</td>
+                        <td class="p-4 text-center font-bold text-coosajo-blue border-r border-gray-100">${val2.toLocaleString()}</td>
+                        <td class="p-4 text-center"><span class="px-2 py-1 rounded font-bold ${colorClass}">${diffText}</span></td>
+                    </tr>
+                `;
+            });
+        };
+
+        // ==========================================
+        // 11. UI Y NAVEGACIÓN
+        // ==========================================
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-500 hover:bg-gray-50 hover:text-coosajo-blue transition-all border border-transparent";
+            });
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if (activeBtn) activeBtn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl bg-coosajo-lightGreen text-coosajo-green transition-all shadow-sm border border-green-100";
+
+            document.querySelectorAll('.mob-btn').forEach(btn => {
+                btn.className = "mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4 transition-all";
+            });
+            const activeMob = document.getElementById('mob-' + tabId);
+            if(activeMob) activeMob.className = "mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/4 bg-coosajo-lightGreen/50 transition-all";
+        };
+
+        document.getElementById('nav-dashboard').addEventListener('click', () => window.switchTab('dashboard'));
+        document.getElementById('nav-reporte').addEventListener('click', () => window.switchTab('reporte'));
+        document.getElementById('nav-comparativa').addEventListener('click', () => window.switchTab('comparativa'));
+        document.getElementById('nav-ingreso').addEventListener('click', () => window.switchTab('ingreso'));
+        
+        document.getElementById('mob-dashboard').addEventListener('click', () => window.switchTab('dashboard'));
+        document.getElementById('mob-reporte').addEventListener('click', () => window.switchTab('reporte'));
+        document.getElementById('mob-comparativa').addEventListener('click', () => window.switchTab('comparativa'));
+        document.getElementById('mob-ingreso').addEventListener('click', () => window.switchTab('ingreso'));
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        // ==========================================
+        // INICIO
+        // ==========================================
+        checkAuth();
     </script>
 </body>
 </html>
