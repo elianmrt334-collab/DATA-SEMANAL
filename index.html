@@ -132,6 +132,31 @@
             filter: invert(1);
             cursor: pointer;
         }
+
+        /* Estilos del Modo Presentación */
+        .pres-slide {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+        .pres-slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 10;
+        }
+        .pres-glass {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
     </style>
 </head>
 <body class="text-gray-800 antialiased h-screen flex flex-col overflow-hidden bg-gradient-main">
@@ -198,6 +223,7 @@
                                 <option value="" class="text-gray-800">Seleccionar...</option>
                             </select>
                             <span class="text-white/30 hidden sm:inline">|</span>
+                            <!-- Cambio a type="week" como fue solicitado -->
                             <input type="week" id="global-week-selector" title="Buscar por semana en el calendario" class="date-picker bg-transparent border-none text-white text-sm font-bold focus:outline-none focus:ring-0 w-[130px] sm:w-[150px] cursor-pointer">
                         </div>
                         <div id="btn-logout" title="Cerrar Sesión" class="user-initial-badge w-9 h-9 rounded-full bg-gradient-to-br from-coosajo-green to-coosajo-hoverGreen flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/50 cursor-pointer hover:scale-105 transition-transform">
@@ -221,6 +247,13 @@
                         </button>
                         <button id="nav-reporte" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-500 hover:bg-gray-50 hover:text-coosajo-blue transition-all border border-transparent">
                             <i class="fa-solid fa-star w-5 text-lg text-yellow-500"></i> Top 10 Posts
+                        </button>
+                    </nav>
+
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2 mt-8">Presentación</p>
+                    <nav class="space-y-2">
+                        <button onclick="startPresentation()" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white bg-gradient-to-r from-coosajo-blue to-[#0e1d38] hover:scale-[1.02] transition-transform shadow-md">
+                            <i class="fa-solid fa-person-chalkboard w-5 text-lg text-coosajo-green"></i> Iniciar Presentación
                         </button>
                     </nav>
 
@@ -460,26 +493,144 @@
 
         <!-- Mobile Bottom Navigation -->
         <div class="md:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-md shadow-[0_-10px_20px_rgba(0,0,0,0.05)] flex justify-around p-2 z-50 border-t border-gray-100 pb-safe">
-            <button id="mob-dashboard" class="mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/3 bg-coosajo-lightGreen/50">
+            <button id="mob-dashboard" class="mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/4 bg-coosajo-lightGreen/50">
                 <i class="fa-solid fa-chart-pie text-xl mb-1"></i>
                 <span class="text-[10px] font-bold">Dash</span>
             </button>
-            <button id="mob-reporte" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/3">
+            <button id="mob-reporte" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4">
                 <i class="fa-solid fa-star text-xl mb-1"></i>
                 <span class="text-[10px] font-bold">Top 10</span>
             </button>
-            <button id="mob-ingreso" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/3">
+            <button onclick="startPresentation()" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4">
+                <i class="fa-solid fa-person-chalkboard text-xl mb-1 text-coosajo-green"></i>
+                <span class="text-[10px] font-bold">Presentar</span>
+            </button>
+            <button id="mob-ingreso" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4">
                 <i class="fa-solid fa-keyboard text-xl mb-1"></i>
                 <span class="text-[10px] font-bold">Datos</span>
             </button>
         </div>
 
         <!-- Toast de Éxito -->
-        <div id="toast" class="fixed top-20 right-5 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-4">
+        <div id="toast" class="fixed top-20 right-5 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl z-[150] flex items-center gap-4">
             <div class="bg-green-500 rounded-full w-10 h-10 flex items-center justify-center shadow-inner"><i class="fa-solid fa-check text-white text-lg"></i></div>
             <div>
                 <p class="font-bold text-sm tracking-wide">¡Guardado Exitoso!</p>
                 <p class="text-xs text-gray-400 mt-0.5" id="toast-msg">Los datos han sido registrados.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- MODO PRESENTACIÓN (FULLSCREEN OVERLAY)                  -->
+    <!-- ======================================================= -->
+    <div id="presentation-mode" class="hidden fixed inset-0 z-[100] bg-gradient-to-br from-[#081226] via-coosajo-blue to-[#0e1d38] text-white overflow-hidden font-sans">
+        
+        <!-- Botón de Cerrar -->
+        <button onclick="exitPresentation()" class="absolute top-6 right-8 text-white/50 hover:text-white text-3xl z-50 transition transform hover:scale-110" title="Salir (Esc)">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <!-- Controles de Navegación -->
+        <button onclick="prevSlide()" class="absolute left-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-white/5 hover:bg-white/20 rounded-full flex items-center justify-center text-2xl z-50 backdrop-blur-md transition border border-white/10 hidden md:flex">
+            <i class="fa-solid fa-chevron-left text-white/70"></i>
+        </button>
+        <button onclick="nextSlide()" class="absolute right-6 top-1/2 -translate-y-1/2 w-14 h-14 bg-gradient-to-r from-coosajo-green to-green-500 hover:from-green-500 hover:to-green-400 rounded-full flex items-center justify-center text-2xl z-50 shadow-[0_0_20px_rgba(21,142,69,0.5)] transition hidden md:flex">
+            <i class="fa-solid fa-chevron-right text-white"></i>
+        </button>
+
+        <!-- Paginación (Puntitos) -->
+        <div class="absolute bottom-8 left-1/2 -translate-y-1/2 flex gap-3 z-50" id="slide-dots">
+            <div class="w-3 h-3 rounded-full bg-white transition-all"></div>
+            <div class="w-3 h-3 rounded-full bg-white/30 transition-all"></div>
+            <div class="w-3 h-3 rounded-full bg-white/30 transition-all"></div>
+            <div class="w-3 h-3 rounded-full bg-white/30 transition-all"></div>
+            <div class="w-3 h-3 rounded-full bg-white/30 transition-all"></div>
+        </div>
+
+        <!-- SLIDE 0: Portada -->
+        <div id="slide-0" class="pres-slide active">
+            <div class="bg-white p-4 rounded-2xl mb-10 shadow-2xl">
+                <img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" alt="Logo" class="h-24 md:h-32 object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-leaf text-coosajo-green text-7xl px-4\'></i>'">
+            </div>
+            <h1 class="text-4xl md:text-6xl font-black mb-6 tracking-tight text-center drop-shadow-lg">Reporte de Rendimiento Social</h1>
+            <div class="pres-glass px-8 py-4 rounded-2xl">
+                <h2 id="pres-week" class="text-2xl md:text-4xl text-coosajo-green font-bold text-center">Período no seleccionado</h2>
+            </div>
+            <p class="text-white/40 mt-12 text-sm">Presiona las flechas o desliza para avanzar</p>
+        </div>
+
+        <!-- SLIDE 1: KPIs Principales -->
+        <div id="slide-1" class="pres-slide">
+            <h2 class="text-3xl md:text-5xl font-bold mb-12 text-center w-full">Impacto Global <span class="text-coosajo-green">MICOOPE</span></h2>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
+                <div class="pres-glass p-8 rounded-3xl text-center flex flex-col items-center justify-center transform transition hover:scale-105 border-b-4 border-b-blue-400">
+                    <i class="fa-solid fa-users text-4xl text-blue-400 mb-4"></i>
+                    <p class="text-lg text-white/60 font-bold uppercase tracking-widest mb-2">Comunidad</p>
+                    <h3 class="text-5xl font-black" id="pres-followers">0</h3>
+                </div>
+                <div class="pres-glass p-8 rounded-3xl text-center flex flex-col items-center justify-center transform transition hover:scale-105 border-b-4 border-b-coosajo-green">
+                    <i class="fa-solid fa-eye text-4xl text-coosajo-green mb-4"></i>
+                    <p class="text-lg text-white/60 font-bold uppercase tracking-widest mb-2">Impresiones</p>
+                    <h3 class="text-5xl font-black text-coosajo-green" id="pres-impressions">0</h3>
+                </div>
+                <div class="pres-glass p-8 rounded-3xl text-center flex flex-col items-center justify-center transform transition hover:scale-105 border-b-4 border-b-blue-400">
+                    <i class="fa-solid fa-heart text-4xl text-blue-400 mb-4"></i>
+                    <p class="text-lg text-white/60 font-bold uppercase tracking-widest mb-2">Interacciones</p>
+                    <h3 class="text-5xl font-black" id="pres-interactions">0</h3>
+                </div>
+                <div class="pres-glass p-8 rounded-3xl text-center flex flex-col items-center justify-center transform transition hover:scale-105 border-b-4 border-b-coosajo-green">
+                    <i class="fa-solid fa-fire text-4xl text-coosajo-green mb-4"></i>
+                    <p class="text-lg text-white/60 font-bold uppercase tracking-widest mb-2">Engagement</p>
+                    <h3 class="text-5xl font-black text-coosajo-green" id="pres-engagement">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Gráfico -->
+        <div id="slide-2" class="pres-slide w-full">
+            <h2 class="text-3xl md:text-5xl font-bold mb-10 text-center w-full">Evolución de <span class="text-coosajo-green">Impresiones</span></h2>
+            <div class="pres-glass p-8 rounded-3xl w-full max-w-6xl shadow-2xl h-[50vh]">
+                <canvas id="presChartCanvas"></canvas>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: Top Posts -->
+        <div id="slide-3" class="pres-slide w-full">
+            <h2 class="text-3xl md:text-5xl font-bold mb-10 text-center w-full">El <span class="text-yellow-400">Top 3</span> de la Semana</h2>
+            <div id="pres-top-grid" class="flex flex-col md:flex-row gap-6 w-full max-w-6xl items-stretch justify-center h-[50vh]">
+                <!-- Llenado dinámico -->
+                <div class="w-full text-center text-white/50 mt-20">No hay posts registrados.</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Notas / Conclusiones -->
+        <div id="slide-4" class="pres-slide w-full">
+            <h2 class="text-3xl md:text-5xl font-bold mb-12 text-center w-full">Análisis y <span class="text-coosajo-green">Conclusiones</span></h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-7xl h-[50vh]">
+                <div class="pres-glass p-8 rounded-3xl flex flex-col">
+                    <div class="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+                        <i class="fa-solid fa-eye text-2xl text-blue-400"></i>
+                        <h3 class="text-xl font-bold">Impresiones</h3>
+                    </div>
+                    <p id="pres-note-imp" class="text-lg text-white/80 leading-relaxed font-handwriting flex-1 overflow-y-auto pr-2">Sin apuntes.</p>
+                </div>
+                <div class="pres-glass p-8 rounded-3xl flex flex-col">
+                    <div class="flex items-center gap-3 mb-6 border-b border-white/10 pb-4">
+                        <i class="fa-solid fa-heart text-2xl text-pink-400"></i>
+                        <h3 class="text-xl font-bold">Interacciones</h3>
+                    </div>
+                    <p id="pres-note-int" class="text-lg text-white/80 leading-relaxed font-handwriting flex-1 overflow-y-auto pr-2">Sin apuntes.</p>
+                </div>
+                <div class="pres-glass p-8 rounded-3xl flex flex-col border border-coosajo-green/50 relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-10"><i class="fa-solid fa-lightbulb text-9xl text-yellow-400"></i></div>
+                    <div class="flex items-center gap-3 mb-6 border-b border-white/10 pb-4 relative z-10">
+                        <i class="fa-solid fa-lightbulb text-2xl text-yellow-400"></i>
+                        <h3 class="text-xl font-bold">Aprendizajes</h3>
+                    </div>
+                    <p id="pres-note-cont" class="text-xl text-yellow-100 leading-relaxed font-handwriting flex-1 overflow-y-auto pr-2 relative z-10">Sin apuntes.</p>
+                </div>
             </div>
         </div>
 
@@ -509,26 +660,6 @@
                 'sjnramirez': { name: 'Noé Ramiréz', pass: 'Coosajo2041' }
             };
 
-            const initialData = {
-                "20 al 27 de Abril": {
-                    metrics: { followers: 56550, impressions: 486110, interactions: 18260, engagement: 82.67, posts: 53, views: 403010, reactions: 2472, clicks: 7396 },
-                    daily: [63000, 58000, 59000, 61000, 44000, 75000, 87000],
-                    notes: {
-                        "note-impresiones": "El pico del sábado se debió a la Noche Familiar.",
-                        "note-interaccion": "Las reacciones subieron por el álbum coleccionable.",
-                        "note-contenido": "Las fotos con familias generan 3 veces más engagement."
-                    },
-                    topPosts: Array.from({length: 10}, (_, i) => ({
-                        title: i===0 ? "Noche Familiar COOSAJO" : "", 
-                        reach: i===0 ? 50000 : 0, 
-                        impressions: i===0 ? 65000 : 0, 
-                        interactions: i===0 ? 3200 : 0, 
-                        engagement: i===0 ? 6.4 : 0, 
-                        image: ""
-                    }))
-                }
-            };
-
             let appData = {};
             let currentWeek = "";
             let mainChart = null;
@@ -551,121 +682,51 @@
 
             const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-            function parseLocalDate(isoStr) {
-                const [y, m, d] = isoStr.split('-').map(Number);
-                return new Date(y, m - 1, d);
-            }
-
-            function toISODateLocal(d) {
-                const y = d.getFullYear();
-                const m = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                return `${y}-${m}-${day}`;
-            }
-
-            function getWeekRangeFromISOWeek(weekValue) {
-                const [yearStr, weekStr] = weekValue.split('-W');
-                const year = parseInt(yearStr, 10);
-                const week = parseInt(weekStr, 10);
-                const jan4 = new Date(year, 0, 4);
-                const dayOfWeek = jan4.getDay() || 7;
-                const monday = new Date(jan4);
-                monday.setDate(jan4.getDate() - dayOfWeek + 1 + (week - 1) * 7);
-                const sunday = new Date(monday);
-                sunday.setDate(monday.getDate() + 6);
-                return { start: monday, end: sunday };
-            }
-
-            function getISOWeekString(date) {
-                const d = new Date(date);
-                d.setHours(0, 0, 0, 0);
-                d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
-                const week1 = new Date(d.getFullYear(), 0, 4);
-                const weekNum = 1 + Math.round(((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
-                return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
-            }
-
-            function formatPeriodName(start, end) {
-                const s = start instanceof Date ? start : parseLocalDate(start);
-                const e = end instanceof Date ? end : parseLocalDate(end);
-                const mesInicio = MESES[s.getMonth()];
-                const mesFin = MESES[e.getMonth()];
-                if (s.getMonth() === e.getMonth()) {
-                    return `${s.getDate()} al ${e.getDate()} de ${mesInicio}`;
-                }
-                return `${s.getDate()} de ${mesInicio} al ${e.getDate()} de ${mesFin}`;
-            }
-
-            function isWeekInputSupported() {
-                const test = document.createElement('input');
-                test.setAttribute('type', 'week');
-                test.value = '2020-W01';
-                return test.type === 'week' && test.value === '2020-W01';
-            }
-
-            function applyWeekInputFallback() {
-                if (!isWeekInputSupported()) {
-                    inputGlobalWeek.type = 'date';
-                    inputFormWeekPicker.type = 'date';
-                    inputGlobalWeek.title = 'Selecciona una fecha para calcular la semana';
-                    inputFormWeekPicker.title = 'Selecciona una fecha para calcular la semana';
-                }
-            }
+            // Lógica de fechas (mantenida de la versión original)
+            function parseLocalDate(isoStr) { const [y, m, d] = isoStr.split('-').map(Number); return new Date(y, m - 1, d); }
+            function toISODateLocal(d) { const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); return `${y}-${m}-${day}`; }
+            function getWeekRangeFromISOWeek(weekValue) { const [yearStr, weekStr] = weekValue.split('-W'); const year = parseInt(yearStr, 10); const week = parseInt(weekStr, 10); const jan4 = new Date(year, 0, 4); const dayOfWeek = jan4.getDay() || 7; const monday = new Date(jan4); monday.setDate(jan4.getDate() - dayOfWeek + 1 + (week - 1) * 7); const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6); return { start: monday, end: sunday }; }
+            function getISOWeekString(date) { const d = new Date(date); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7)); const week1 = new Date(d.getFullYear(), 0, 4); const weekNum = 1 + Math.round(((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7); return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`; }
+            function formatPeriodName(start, end) { const s = start instanceof Date ? start : parseLocalDate(start); const e = end instanceof Date ? end : parseLocalDate(end); const mesInicio = MESES[s.getMonth()]; const mesFin = MESES[e.getMonth()]; if (s.getMonth() === e.getMonth()) { return `${s.getDate()} al ${e.getDate()} de ${mesInicio}`; } return `${s.getDate()} de ${mesInicio} al ${e.getDate()} de ${mesFin}`; }
+            
+            function isWeekInputSupported() { const test = document.createElement('input'); test.setAttribute('type', 'week'); test.value = '2020-W01'; return test.type === 'week' && test.value === '2020-W01'; }
+            function applyWeekInputFallback() { if (!isWeekInputSupported()) { inputGlobalWeek.type = 'date'; inputFormWeekPicker.type = 'date'; inputGlobalWeek.title = 'Selecciona fecha'; inputFormWeekPicker.title = 'Selecciona fecha'; } }
 
             function setPeriodPickers(startISO, endISO) {
                 if (!startISO || !endISO) return;
-                inputFormDateStart.value = startISO;
-                inputFormDateEnd.value = endISO;
+                inputFormDateStart.value = startISO; inputFormDateEnd.value = endISO;
                 inputFormWeekPicker.value = inputFormWeekPicker.type === 'week' ? getISOWeekString(parseLocalDate(startISO)) : startISO;
                 const name = formatPeriodName(startISO, endISO);
-                inputFormWeek.value = name;
-                formPeriodPreview.textContent = `Período: ${name}`;
+                inputFormWeek.value = name; formPeriodPreview.textContent = `Período: ${name}`;
             }
 
             function updatePeriodFromPickers() {
-                const start = inputFormDateStart.value;
-                const end = inputFormDateEnd.value;
+                const start = inputFormDateStart.value; const end = inputFormDateEnd.value;
                 if (!start || !end) return;
-                if (parseLocalDate(start) > parseLocalDate(end)) {
-                    inputFormDateEnd.value = start;
-                    return updatePeriodFromPickers();
-                }
+                if (parseLocalDate(start) > parseLocalDate(end)) { inputFormDateEnd.value = start; return updatePeriodFromPickers(); }
                 const name = formatPeriodName(start, end);
-                inputFormWeek.value = name;
-                formPeriodPreview.textContent = `Período: ${name}`;
+                inputFormWeek.value = name; formPeriodPreview.textContent = `Período: ${name}`;
                 inputFormWeekPicker.value = inputFormWeekPicker.type === 'week' ? getISOWeekString(parseLocalDate(start)) : start;
             }
 
             function findPeriodKeyByDates(startISO, endISO) {
                 const expectedName = formatPeriodName(startISO, endISO);
                 if (appData[expectedName]) return expectedName;
-                for (const key of Object.keys(appData)) {
-                    const d = appData[key];
-                    if (d.dateStart === startISO && d.dateEnd === endISO) return key;
-                }
+                for (const key of Object.keys(appData)) { const d = appData[key]; if (d.dateStart === startISO && d.dateEnd === endISO) return key; }
                 return expectedName;
             }
 
             function syncGlobalWeekPicker(weekStr) {
                 const data = appData[weekStr];
-                if (data && data.dateStart) {
-                    inputGlobalWeek.value = inputGlobalWeek.type === 'week'
-                        ? getISOWeekString(parseLocalDate(data.dateStart))
-                        : data.dateStart;
-                } else {
-                    inputGlobalWeek.value = '';
-                }
+                if (data && data.dateStart) { inputGlobalWeek.value = inputGlobalWeek.type === 'week' ? getISOWeekString(parseLocalDate(data.dateStart)) : data.dateStart; } 
+                else { inputGlobalWeek.value = ''; }
             }
 
             // 3. SISTEMA DE AUTENTICACIÓN
             function checkAuth() {
                 const loggedUser = sessionStorage.getItem('coosajo_logged_user');
-                if(loggedUser) {
-                    showApp(JSON.parse(loggedUser));
-                } else {
-                    loginScreen.classList.remove('hidden');
-                    appContent.classList.add('hidden');
-                }
+                if(loggedUser) { showApp(JSON.parse(loggedUser)); } 
+                else { loginScreen.classList.remove('hidden'); appContent.classList.add('hidden'); }
             }
 
             loginForm.addEventListener('submit', (e) => {
@@ -706,53 +767,35 @@
                 initAppData();
             }
 
-            // 4. INICIALIZACIÓN DE DATOS Y UI DESDE FIREBASE
+            // 4. INICIALIZACIÓN DE DATOS (FIREBASE)
             async function initAppData() {
                 Chart.defaults.font.family = "'Inter', sans-serif";
-                
-                // Mostrar un pequeño toast para informar que se está conectando
                 showToast("Conectando con la base de datos...");
 
                 try {
-                    // Obtener todos los reportes desde Firebase
                     const querySnapshot = await getDocs(collection(db, "reportes"));
-                    querySnapshot.forEach((doc) => {
-                        appData[doc.id] = doc.data();
-                    });
-
-                    // Si Firebase está vacío, cargar la data inicial como ejemplo
-                    if (Object.keys(appData).length === 0) {
-                        appData = initialData;
-                        for (const [key, value] of Object.entries(appData)) {
-                            await setDoc(doc(db, "reportes", key), value);
-                        }
-                    }
+                    querySnapshot.forEach((doc) => { appData[doc.id] = doc.data(); });
                 } catch (error) {
-                    console.error("Error al conectar con Firebase:", error);
-                    alert("No se pudieron cargar los datos desde la nube. Verifica las reglas de Firebase.");
+                    console.error("Error Firebase:", error);
+                    showToast("Error de conexión. Usando datos locales.");
                 }
 
                 currentWeek = Object.keys(appData).length > 0 ? Object.keys(appData)[0] : "";
-
                 renderTopPostsInput();
                 updatePeriodDatalist();
-                
                 applyWeekInputFallback();
+                
                 if(currentWeek) {
                     if(!mainChart) initChart();
                     loadWeekData(currentWeek);
                 } else {
-                    const today = new Date();
-                    const day = today.getDay();
-                    const monday = new Date(today);
-                    monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
-                    const sunday = new Date(monday);
-                    sunday.setDate(monday.getDate() + 6);
+                    const today = new Date(); const day = today.getDay(); const monday = new Date(today);
+                    monday.setDate(today.getDate() - (day === 0 ? 6 : day - 1)); const sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
                     setPeriodPickers(toISODateLocal(monday), toISODateLocal(sunday));
                 }
             }
 
-            // 5. RENDERIZADO DINÁMICO (TOP 10 INPUT)
+            // 5. RENDERIZADO TOP 10 (INPUT)
             function renderTopPostsInput() {
                 const tbody = document.getElementById('top-posts-input-body');
                 tbody.innerHTML = '';
@@ -778,7 +821,7 @@
                 }
             }
 
-            // Exponer función de compresión al scope global para el onchange del HTML dinámico
+            // Exponer función de compresión al scope global
             window.compressAndPreview = function(input, index) {
                 const file = input.files[0];
                 if(!file) return;
@@ -787,13 +830,12 @@
                     const img = new Image();
                     img.onload = function() {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 250; // Comprimir a 250px ancho
+                        const MAX_WIDTH = 250;
                         const scale = MAX_WIDTH / img.width;
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scale;
+                        canvas.width = MAX_WIDTH; canvas.height = img.height * scale;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        const base64 = canvas.toDataURL('image/jpeg', 0.6); // 60% calidad
+                        const base64 = canvas.toDataURL('image/jpeg', 0.6);
                         document.getElementById(`p-img-prev-${index}`).src = base64;
                         document.getElementById(`p-img-data-${index}`).value = base64;
                     }
@@ -809,8 +851,7 @@
                 if(!posts || posts.length === 0) return;
 
                 posts.forEach((p, i) => {
-                    if(!p.title && !p.reach && !p.impressions) return; // Saltar vacíos
-
+                    if(!p.title && !p.reach && !p.impressions) return;
                     const imgSrc = p.image || `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='1'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>`;
 
                     const html = `
@@ -847,133 +888,89 @@
                 });
             }
 
-            // 7. LÓGICA PRINCIPAL DEL DASHBOARD
+            // 7. LÓGICA PRINCIPAL
             function updatePeriodDatalist() {
                 const keys = Object.keys(appData);
                 inputGlobalPeriodSelect.innerHTML = '<option value="" class="text-gray-800">Seleccionar...</option>';
                 keys.forEach(key => {
-                    const opt = document.createElement('option');
-                    opt.value = key;
-                    opt.textContent = key;
-                    opt.className = 'text-gray-800';
+                    const opt = document.createElement('option'); opt.value = key; opt.textContent = key; opt.className = 'text-gray-800';
                     inputGlobalPeriodSelect.appendChild(opt);
                 });
-                if (currentWeek && keys.includes(currentWeek)) {
-                    inputGlobalPeriodSelect.value = currentWeek;
-                }
+                if (currentWeek && keys.includes(currentWeek)) inputGlobalPeriodSelect.value = currentWeek;
             }
 
-            // Exponer al scope global para los onchange de los inputs
             window.loadWeekData = function(weekStr) {
                 currentWeek = weekStr;
                 inputGlobalPeriodSelect.value = weekStr || '';
                 syncGlobalWeekPicker(weekStr);
                 inputFormWeek.value = weekStr;
-                document.getElementById('dash-week-label').innerText = weekStr
-                    ? `Mostrando datos de: ${weekStr}`
-                    : 'Mostrando datos del período seleccionado.';
+                document.getElementById('dash-week-label').innerText = weekStr ? `Mostrando datos de: ${weekStr}` : 'Mostrando datos del período seleccionado.';
 
                 const data = appData[weekStr];
 
                 if (data) {
-                    // KPIs
                     document.getElementById('val-followers').innerText = (data.metrics.followers >= 1000 ? (data.metrics.followers/1000).toFixed(2)+'K' : data.metrics.followers);
                     document.getElementById('val-impressions').innerText = (data.metrics.impressions >= 1000 ? (data.metrics.impressions/1000).toFixed(2)+'K' : data.metrics.impressions);
                     document.getElementById('val-interactions').innerText = (data.metrics.interactions >= 1000 ? (data.metrics.interactions/1000).toFixed(2)+'K' : data.metrics.interactions);
                     document.getElementById('val-engagement').innerText = data.metrics.engagement;
                     document.getElementById('val-posts').innerText = data.metrics.posts;
                     document.getElementById('val-views').innerText = (data.metrics.views >= 1000 ? (data.metrics.views/1000).toFixed(2)+'K' : data.metrics.views);
-                    document.getElementById('val-reactions').innerText = data.metrics.reactions.toLocaleString();
-                    document.getElementById('val-clicks').innerText = data.metrics.clicks.toLocaleString();
+                    document.getElementById('val-reactions').innerText = data.metrics.reactions ? data.metrics.reactions.toLocaleString() : "0";
+                    document.getElementById('val-clicks').innerText = data.metrics.clicks ? data.metrics.clicks.toLocaleString() : "0";
 
                     updateChartData(data.daily);
 
-                    // SINCRONIZAR NOTAS A LA SEMANA SELECCIONADA
                     document.getElementById('note-impresiones').value = data.notes["note-impresiones"] || "";
                     document.getElementById('note-interaccion').value = data.notes["note-interaccion"] || "";
                     document.getElementById('note-contenido').value = data.notes["note-contenido"] || "";
 
                     renderTopPostsDisplay(data.topPosts);
-
                 } else {
                     ['followers', 'impressions', 'interactions', 'engagement', 'posts', 'views', 'reactions', 'clicks'].forEach(id => {
-                        document.getElementById('val-' + id).innerText = "-";
+                        const el = document.getElementById('val-' + id);
+                        if(el) el.innerText = "-";
                     });
                     updateChartData([0,0,0,0,0,0,0]);
                     document.querySelectorAll('.note-area').forEach(el => el.value = "");
                     renderTopPostsDisplay([]);
                 }
-                
                 loadFormForWeek(weekStr);
             }
 
-            // SINCRONIZACIÓN DE NOTAS EN TIEMPO REAL CON FIREBASE
             let noteTimeout;
             window.saveNotes = function() {
                 if (!currentWeek) return;
-                if (!appData[currentWeek]) {
-                    appData[currentWeek] = { metrics: {}, daily: [], notes: {}, topPosts: [] };
-                    updatePeriodDatalist(); 
-                }
+                if (!appData[currentWeek]) { appData[currentWeek] = { metrics: {}, daily: [], notes: {}, topPosts: [] }; updatePeriodDatalist(); }
                 
                 appData[currentWeek].notes["note-impresiones"] = document.getElementById('note-impresiones').value;
                 appData[currentWeek].notes["note-interaccion"] = document.getElementById('note-interaccion').value;
                 appData[currentWeek].notes["note-contenido"] = document.getElementById('note-contenido').value;
                 
-                // Debounce para no saturar Firebase con peticiones mientras se escribe
                 clearTimeout(noteTimeout);
                 noteTimeout = setTimeout(async () => {
-                    try {
-                        await setDoc(doc(db, "reportes", currentWeek), appData[currentWeek], { merge: true });
-                    } catch (error) {
-                        console.error("Error al guardar notas en Firebase:", error);
-                    }
+                    try { await setDoc(doc(db, "reportes", currentWeek), appData[currentWeek], { merge: true }); } 
+                    catch (error) { console.error("Error al guardar notas en Firebase:", error); }
                 }, 1500); 
             }
 
-            // Añadir event listeners a textareas de notas
-            document.querySelectorAll('.note-area').forEach(textarea => {
-                textarea.addEventListener('input', window.saveNotes);
-            });
-
-            inputGlobalPeriodSelect.addEventListener('change', (e) => {
-                if (e.target.value) window.loadWeekData(e.target.value);
-            });
-
+            document.querySelectorAll('.note-area').forEach(textarea => { textarea.addEventListener('input', window.saveNotes); });
+            inputGlobalPeriodSelect.addEventListener('change', (e) => { if (e.target.value) window.loadWeekData(e.target.value); });
             inputGlobalWeek.addEventListener('change', (e) => {
                 if (!e.target.value) return;
                 const weekValue = inputGlobalWeek.type === 'week' ? e.target.value : getISOWeekString(parseLocalDate(e.target.value));
                 const { start, end } = getWeekRangeFromISOWeek(weekValue);
-                const startISO = toISODateLocal(start);
-                const endISO = toISODateLocal(end);
+                const startISO = toISODateLocal(start); const endISO = toISODateLocal(end);
                 const periodKey = findPeriodKeyByDates(startISO, endISO);
                 window.loadWeekData(periodKey);
             });
-
             inputFormWeekPicker.addEventListener('change', (e) => {
                 if (!e.target.value) return;
                 const weekValue = inputFormWeekPicker.type === 'week' ? e.target.value : getISOWeekString(parseLocalDate(e.target.value));
                 const { start, end } = getWeekRangeFromISOWeek(weekValue);
-                const startISO = toISODateLocal(start);
-                const endISO = toISODateLocal(end);
+                const startISO = toISODateLocal(start); const endISO = toISODateLocal(end);
                 setPeriodPickers(startISO, endISO);
                 const periodKey = findPeriodKeyByDates(startISO, endISO);
                 loadFormForWeek(periodKey);
-            });
-
-            inputFormDateStart.addEventListener('change', () => {
-                if (inputFormDateStart.value && !inputFormDateEnd.value) {
-                    const end = new Date(parseLocalDate(inputFormDateStart.value));
-                    end.setDate(end.getDate() + 6);
-                    inputFormDateEnd.value = toISODateLocal(end);
-                }
-                updatePeriodFromPickers();
-                if (inputFormWeek.value) loadFormForWeek(inputFormWeek.value);
-            });
-
-            inputFormDateEnd.addEventListener('change', () => {
-                updatePeriodFromPickers();
-                if (inputFormWeek.value) loadFormForWeek(inputFormWeek.value);
             });
 
             // 8. LÓGICA DEL FORMULARIO
@@ -994,9 +991,11 @@
                     document.getElementById('form-views').value = data.metrics.views || '';
                     document.getElementById('form-reactions').value = data.metrics.reactions || '';
                     document.getElementById('form-clicks').value = data.metrics.clicks || '';
-                    for(let i=1; i<=7; i++) document.getElementById('d'+i).value = data.daily[i-1] || 0;
+                    for(let i=1; i<=7; i++) {
+                        const el = document.getElementById('d'+i);
+                        if(el) el.value = data.daily[i-1] || 0;
+                    }
                     
-                    // Cargar Top 10 en Form
                     const posts = data.topPosts || [];
                     for(let i=0; i<10; i++) {
                         const p = posts[i] || {};
@@ -1006,27 +1005,22 @@
                         document.getElementById(`p-int-${i}`).value = p.interactions || '';
                         document.getElementById(`p-eng-${i}`).value = p.engagement || '';
                         document.getElementById(`p-img-data-${i}`).value = p.image || '';
-                        
                         const defaultImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>";
                         document.getElementById(`p-img-prev-${i}`).src = p.image ? p.image : defaultImg;
                     }
                 } else {
-                    const preservedStart = inputFormDateStart.value;
-                    const preservedEnd = inputFormDateEnd.value;
-                    const preservedWeekPicker = inputFormWeekPicker.value;
+                    const preservedStart = inputFormDateStart.value; const preservedEnd = inputFormDateEnd.value; const preservedWeekPicker = inputFormWeekPicker.value;
                     document.getElementById('manual-data-form').reset();
                     if (preservedStart) inputFormDateStart.value = preservedStart;
                     if (preservedEnd) inputFormDateEnd.value = preservedEnd;
                     if (preservedWeekPicker) inputFormWeekPicker.value = preservedWeekPicker;
-                    if (weekStr) {
-                        inputFormWeek.value = weekStr;
-                        formPeriodPreview.textContent = `Período: ${weekStr}`;
-                    } else {
-                        updatePeriodFromPickers();
-                    }
+                    if (weekStr) { inputFormWeek.value = weekStr; formPeriodPreview.textContent = `Período: ${weekStr}`; } 
+                    else { updatePeriodFromPickers(); }
                     for(let i=0; i<10; i++) {
-                        document.getElementById(`p-img-prev-${i}`).src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>";
-                        document.getElementById(`p-img-data-${i}`).value = "";
+                        const imgEl = document.getElementById(`p-img-prev-${i}`);
+                        if(imgEl) imgEl.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>";
+                        const dataEl = document.getElementById(`p-img-data-${i}`);
+                        if(dataEl) dataEl.value = "";
                     }
                 }
             }
@@ -1034,15 +1028,11 @@
             btnSaveData.addEventListener('click', async () => {
                 updatePeriodFromPickers();
                 const weekToSave = inputFormWeek.value.trim();
-                if(!inputFormDateStart.value || !inputFormDateEnd.value) {
-                    alert("Por favor selecciona las fechas del período en el calendario.");
-                    return;
-                }
+                if(!inputFormDateStart.value || !inputFormDateEnd.value) { alert("Por favor selecciona las fechas del período en el calendario."); return; }
                 if(!weekToSave) { alert("Por favor selecciona un período válido en el calendario."); return; }
 
                 const existingNotes = appData[weekToSave] ? appData[weekToSave].notes : {};
                 
-                // Recopilar Top 10
                 const topPostsArray = [];
                 for(let i=0; i<10; i++) {
                     topPostsArray.push({
@@ -1056,8 +1046,7 @@
                 }
 
                 appData[weekToSave] = {
-                    dateStart: inputFormDateStart.value,
-                    dateEnd: inputFormDateEnd.value,
+                    dateStart: inputFormDateStart.value, dateEnd: inputFormDateEnd.value,
                     metrics: {
                         followers: Number(document.getElementById('form-followers').value) || 0,
                         impressions: Number(document.getElementById('form-impressions').value) || 0,
@@ -1074,55 +1063,34 @@
                         Number(document.getElementById('d5').value)||0, Number(document.getElementById('d6').value)||0,
                         Number(document.getElementById('d7').value)||0
                     ],
-                    notes: existingNotes,
-                    topPosts: topPostsArray
+                    notes: existingNotes, topPosts: topPostsArray
                 };
 
-                // GUARDAR EN FIREBASE
                 const originalText = btnSaveData.innerHTML;
-                btnSaveData.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando en Firebase...';
+                btnSaveData.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
                 btnSaveData.disabled = true;
 
                 try {
                     await setDoc(doc(db, "reportes", weekToSave), appData[weekToSave]);
-                    
                     updatePeriodDatalist(); 
-                    
-                    if(weekToSave === currentWeek || currentWeek === "") {
-                        window.loadWeekData(weekToSave);
-                    }
-
+                    if(weekToSave === currentWeek || currentWeek === "") window.loadWeekData(weekToSave);
                     showToast(`Datos guardados: ${weekToSave}`);
                     window.switchTab('dashboard'); 
-
-                } catch (error) {
-                    alert("Error al guardar en la nube: " + error.message);
-                } finally {
-                    btnSaveData.innerHTML = originalText;
-                    btnSaveData.disabled = false;
-                }
+                } catch (error) { alert("Error al guardar en la nube: " + error.message); } 
+                finally { btnSaveData.innerHTML = originalText; btnSaveData.disabled = false; }
             });
 
             btnClearData.addEventListener('click', async () => {
                 if(confirm("¿Estás seguro de borrar todo el historial en la NUBE? Esto no se puede deshacer.")) {
                     try {
-                        // Borrar todos los documentos de la colección "reportes" en Firebase
                         const querySnapshot = await getDocs(collection(db, "reportes"));
                         const deletePromises = [];
-                        querySnapshot.forEach((d) => {
-                            deletePromises.push(deleteDoc(doc(db, "reportes", d.id)));
-                        });
+                        querySnapshot.forEach((d) => { deletePromises.push(deleteDoc(doc(db, "reportes", d.id))); });
                         await Promise.all(deletePromises);
-
-                        appData = {};
-                        updatePeriodDatalist();
-                        inputGlobalPeriodSelect.value = "";
-                        inputGlobalWeek.value = "";
-                        window.loadWeekData("");
-                        showToast("Historial eliminado completamente.");
-                    } catch (error) {
-                        alert("Error al borrar el historial en Firebase: " + error.message);
-                    }
+                        appData = {}; updatePeriodDatalist();
+                        inputGlobalPeriodSelect.value = ""; inputGlobalWeek.value = "";
+                        window.loadWeekData(""); showToast("Historial eliminado.");
+                    } catch (error) { alert("Error al borrar: " + error.message); }
                 }
             });
 
@@ -1130,48 +1098,141 @@
             function initChart() {
                 const ctx = document.getElementById('mainEvolucionChart').getContext('2d');
                 let gradientGreen = ctx.createLinearGradient(0, 0, 0, 300);
-                gradientGreen.addColorStop(0, 'rgba(21, 142, 69, 0.5)');
-                gradientGreen.addColorStop(1, 'rgba(21, 142, 69, 0.0)');
-
+                gradientGreen.addColorStop(0, 'rgba(21, 142, 69, 0.5)'); gradientGreen.addColorStop(1, 'rgba(21, 142, 69, 0.0)');
                 mainChart = new Chart(ctx, {
                     type: 'line',
+                    data: { labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], datasets: [{ label: 'Impresiones', data: [0,0,0,0,0,0,0], borderColor: '#158e45', backgroundColor: gradientGreen, borderWidth: 4, pointBackgroundColor: '#ffffff', pointBorderColor: '#158e45', pointBorderWidth: 3, pointRadius: 6, pointHoverRadius: 8, fill: true, tension: 0.4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#172e59', padding: 12, cornerRadius: 8 } }, scales: { y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(0,0,0,0.03)' } }, x: { grid: { display: false }, border: { display: false } } } }
+                });
+            }
+
+            function updateChartData(dailyData) { if(mainChart) { mainChart.data.datasets[0].data = dailyData; mainChart.update(); } }
+
+            // 10. MODO PRESENTACIÓN (Lógica)
+            let currentSlide = 0;
+            const totalSlides = 5;
+            let presChartObj = null;
+
+            window.startPresentation = function() {
+                if(!currentWeek || !appData[currentWeek]) {
+                    showToast("Por favor selecciona un período con datos primero.");
+                    return;
+                }
+                populatePresentationData();
+                document.getElementById('presentation-mode').classList.remove('hidden');
+                showSlide(0);
+                document.addEventListener('keydown', handlePresKeys);
+            };
+
+            window.exitPresentation = function() {
+                document.getElementById('presentation-mode').classList.add('hidden');
+                document.removeEventListener('keydown', handlePresKeys);
+            };
+
+            function handlePresKeys(e) {
+                if(e.key === 'ArrowRight') nextSlide();
+                if(e.key === 'ArrowLeft') prevSlide();
+                if(e.key === 'Escape') exitPresentation();
+            }
+
+            window.nextSlide = function() { if(currentSlide < totalSlides - 1) showSlide(currentSlide + 1); };
+            window.prevSlide = function() { if(currentSlide > 0) showSlide(currentSlide - 1); };
+
+            function showSlide(index) {
+                document.querySelectorAll('.pres-slide').forEach((el, i) => {
+                    if (i === index) { el.classList.add('active'); } 
+                    else { el.classList.remove('active'); }
+                });
+                
+                const dots = document.getElementById('slide-dots').children;
+                for(let i=0; i<dots.length; i++) {
+                    dots[i].className = i === index ? "w-4 h-4 rounded-full bg-coosajo-green transition-all shadow-[0_0_10px_rgba(21,142,69,0.8)]" : "w-3 h-3 rounded-full bg-white/20 transition-all cursor-pointer";
+                    dots[i].onclick = () => showSlide(i);
+                }
+                currentSlide = index;
+            }
+
+            function populatePresentationData() {
+                const data = appData[currentWeek];
+                // Portada
+                document.getElementById('pres-week').innerText = currentWeek;
+                
+                // KPIs
+                document.getElementById('pres-followers').innerText = (data.metrics.followers >= 1000 ? (data.metrics.followers/1000).toFixed(2)+'K' : data.metrics.followers);
+                document.getElementById('pres-impressions').innerText = (data.metrics.impressions >= 1000 ? (data.metrics.impressions/1000).toFixed(2)+'K' : data.metrics.impressions);
+                document.getElementById('pres-interactions').innerText = (data.metrics.interactions >= 1000 ? (data.metrics.interactions/1000).toFixed(2)+'K' : data.metrics.interactions);
+                document.getElementById('pres-engagement').innerText = data.metrics.engagement + "%";
+
+                // Gráfico Secundario
+                const ctxPres = document.getElementById('presChartCanvas').getContext('2d');
+                if(presChartObj) presChartObj.destroy(); // Recrear para evitar bugs de tamaño
+                let gradientG = ctxPres.createLinearGradient(0, 0, 0, 400);
+                gradientG.addColorStop(0, 'rgba(21, 142, 69, 0.4)'); gradientG.addColorStop(1, 'rgba(21, 142, 69, 0.0)');
+                
+                Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
+                presChartObj = new Chart(ctxPres, {
+                    type: 'line',
                     data: {
-                        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                        labels: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
                         datasets: [{
-                            label: 'Impresiones',
-                            data: [0,0,0,0,0,0,0],
-                            borderColor: '#158e45',
-                            backgroundColor: gradientGreen,
-                            borderWidth: 4,
-                            pointBackgroundColor: '#ffffff',
-                            pointBorderColor: '#158e45',
-                            pointBorderWidth: 3,
-                            pointRadius: 6,
-                            pointHoverRadius: 8,
-                            fill: true,
-                            tension: 0.4 
+                            label: 'Impresiones', data: data.daily, borderColor: '#158e45', backgroundColor: gradientG, borderWidth: 5,
+                            pointBackgroundColor: '#fff', pointBorderColor: '#158e45', pointBorderWidth: 3, pointRadius: 6, fill: true, tension: 0.4 
                         }]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#172e59', padding: 12, cornerRadius: 8 } },
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#fff', titleColor: '#172e59', bodyColor: '#172e59', padding: 12, cornerRadius: 8 } },
                         scales: {
-                            y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(0,0,0,0.03)' } },
+                            y: { beginAtZero: true, border: { display: false }, grid: { color: 'rgba(255,255,255,0.05)' } },
                             x: { grid: { display: false }, border: { display: false } }
                         }
                     }
                 });
-            }
+                Chart.defaults.color = '#6b7280'; // Restaurar color por defecto
 
-            function updateChartData(dailyData) {
-                if(mainChart) {
-                    mainChart.data.datasets[0].data = dailyData;
-                    mainChart.update();
+                // Top Posts (Top 3)
+                const presGrid = document.getElementById('pres-top-grid');
+                presGrid.innerHTML = '';
+                const top3 = (data.topPosts || []).filter(p => p.title || p.impressions).slice(0, 3);
+                
+                if(top3.length === 0) {
+                    presGrid.innerHTML = '<div class="w-full text-center text-white/50 mt-20 text-2xl">No hay posts registrados para este período.</div>';
+                } else {
+                    const medals = ['<i class="fa-solid fa-trophy text-yellow-400"></i>', '<i class="fa-solid fa-medal text-gray-300"></i>', '<i class="fa-solid fa-award text-orange-400"></i>'];
+                    top3.forEach((p, i) => {
+                        const imgSrc = p.image || `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>`;
+                        const scaleClass = i === 0 ? 'scale-105 z-10 shadow-[0_0_30px_rgba(0,0,0,0.5)] border-yellow-400/50' : 'scale-95 opacity-80 border-white/10';
+                        
+                        presGrid.innerHTML += `
+                        <div class="pres-glass rounded-3xl overflow-hidden flex flex-col w-full md:w-1/3 transform transition-all duration-500 border ${scaleClass}">
+                            <div class="h-48 bg-black/30 relative flex items-center justify-center p-2">
+                                <div class="absolute top-4 left-4 text-3xl drop-shadow-md">${medals[i]}</div>
+                                <img src="${imgSrc}" class="max-h-full max-w-full object-contain drop-shadow-lg rounded">
+                            </div>
+                            <div class="p-6 flex flex-col flex-1">
+                                <h4 class="font-bold text-lg leading-tight mb-4 flex-1">${p.title || 'Post sin título'}</h4>
+                                <div class="bg-black/20 rounded-xl p-4 mt-auto">
+                                    <div class="flex justify-between items-center border-b border-white/10 pb-2 mb-2">
+                                        <span class="text-sm text-white/60">Impresiones</span>
+                                        <span class="font-bold text-lg">${Number(p.impressions).toLocaleString()}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-white/60">Interacciones</span>
+                                        <span class="font-bold text-coosajo-green text-lg">${Number(p.interactions).toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
                 }
+
+                // Notas
+                document.getElementById('pres-note-imp').innerText = data.notes["note-impresiones"] || "No se registraron apuntes sobre las impresiones para esta semana.";
+                document.getElementById('pres-note-int').innerText = data.notes["note-interaccion"] || "No se registraron apuntes sobre las interacciones para esta semana.";
+                document.getElementById('pres-note-cont').innerText = data.notes["note-contenido"] || "No hay aprendizajes clave registrados.";
             }
 
-            // 10. UI Y NAVEGACIÓN
+            // 11. UI Y NAVEGACIÓN TABS
             window.switchTab = function(tabId) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
                 document.getElementById('tab-' + tabId).classList.remove('hidden');
@@ -1183,10 +1244,10 @@
                 if (activeBtn) activeBtn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl bg-coosajo-lightGreen text-coosajo-green transition-all shadow-sm border border-green-100";
 
                 document.querySelectorAll('.mob-btn').forEach(btn => {
-                    btn.className = "mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/3 transition-all";
+                    btn.className = "mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4 transition-all";
                 });
                 const activeMob = document.getElementById('mob-' + tabId);
-                if(activeMob) activeMob.className = "mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/3 bg-coosajo-lightGreen/50 transition-all";
+                if(activeMob) activeMob.className = "mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/4 bg-coosajo-lightGreen/50 transition-all";
             };
 
             document.getElementById('nav-dashboard').addEventListener('click', () => window.switchTab('dashboard'));
@@ -1204,7 +1265,7 @@
                 setTimeout(() => toast.classList.remove('show'), 3500);
             }
 
-            // INICIAR LA APLICACIÓN VALIDANDO SESIÓN
+            // INICIAR
             checkAuth();
         });
     </script>
