@@ -134,10 +134,20 @@
         }
 
         /* Estilos del Modo Presentación */
+        #presentation-mode {
+            opacity: 0;
+            transform: scale(0.96);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        #presentation-mode.presentation-visible {
+            opacity: 1;
+            transform: scale(1);
+        }
         .pres-slide {
             opacity: 0;
+            transform: translateY(25px) scale(0.96);
             pointer-events: none;
-            transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1), transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
             position: absolute;
             inset: 0;
             z-index: 0;
@@ -146,9 +156,11 @@
             justify-content: center;
             align-items: center;
             padding: 3rem;
+            will-change: opacity, transform;
         }
         .pres-slide.active {
             opacity: 1;
+            transform: translateY(0) scale(1);
             pointer-events: auto;
             z-index: 10;
         }
@@ -586,6 +598,8 @@
             <div class="w-3 h-3 rounded-full bg-white/30 transition-all"></div>
             <div class="w-3 h-3 rounded-full bg-white/30 transition-all"></div>
             <div class="w-3 h-3 rounded-full bg-white/30 transition-all"></div>
+            <div class="w-3 h-3 rounded-full bg-white/30 transition-all"></div>
+            <div class="w-3 h-3 rounded-full bg-white/30 transition-all"></div>
         </div>
 
         <!-- SLIDE 0: Portada -->
@@ -644,8 +658,24 @@
             </div>
         </div>
 
-        <!-- SLIDE 4: Notas / Conclusiones -->
+        <!-- SLIDE 4: Top 7 -->
         <div id="slide-4" class="pres-slide w-full">
+            <h2 class="text-3xl md:text-5xl font-bold mb-10 text-center w-full">El <span class="text-coosajo-green">Top 7</span> restante</h2>
+            <div id="pres-top7-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-7xl h-[50vh] overflow-y-auto pr-2">
+                <div class="w-full text-center text-white/50 mt-20">No hay más posts registrados.</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Comparativa Semanal -->
+        <div id="slide-5" class="pres-slide w-full">
+            <h2 class="text-3xl md:text-5xl font-bold mb-10 text-center w-full">Comparativa Semanal</h2>
+            <div id="pres-compare-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-7xl h-[50vh] overflow-y-auto pr-2">
+                <div class="w-full text-center text-white/50 mt-20">Selecciona una comparativa en el ingreso de datos.</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: Notas / Conclusiones -->
+        <div id="slide-6" class="pres-slide w-full">
             <h2 class="text-3xl md:text-5xl font-bold mb-12 text-center w-full">Análisis y <span class="text-coosajo-green">Conclusiones</span></h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-7xl h-[50vh]">
                 <div class="pres-glass p-8 rounded-3xl flex flex-col">
@@ -672,7 +702,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <!-- ======================================================= -->
@@ -1048,66 +1077,6 @@
                 `;
             }
 
-            window.startPresentation = function() {
-                const selectedWeek = currentWeek || inputFormWeek.value || Object.keys(appData)[0] || '';
-                if (!selectedWeek) {
-                    showToast('Selecciona primero un período para presentar');
-                    return;
-                }
-                window.switchTab('presentacion');
-                renderPresentation(selectedWeek);
-            }
-
-            function renderPresentation(weekStr) {
-                const data = appData[weekStr];
-                const compareWeek = data?.compareWith || '';
-                const compareData = compareWeek ? appData[compareWeek] : null;
-                document.getElementById('presentation-period-label').innerText = weekStr || 'Ninguno';
-                document.getElementById('presentation-compare-label').innerText = compareWeek ? `Comparativa: ${compareWeek}` : 'Sin comparativa seleccionada';
-
-                const summary = document.getElementById('presentation-summary');
-                if (!data) {
-                    summary.innerHTML = `<div class="glass-card rounded-3xl p-6 text-center text-gray-500">No hay datos cargados para este período.</div>`;
-                    document.getElementById('presentation-notes').innerHTML = `<div class="text-gray-500">No hay análisis o notas disponibles.</div>`;
-                    document.getElementById('presentation-top3').innerHTML = '';
-                    document.getElementById('presentation-top7').innerHTML = '';
-                    document.getElementById('presentation-compare-panel').innerHTML = '';
-                    return;
-                }
-
-                summary.innerHTML = `
-                    <div class="glass-card rounded-3xl p-6 border border-gray-100 shadow-sm">
-                        <p class="text-xs uppercase tracking-widest text-gray-400 mb-2">Semana</p>
-                        <p class="text-2xl font-black text-coosajo-blue">${weekStr}</p>
-                        <p class="text-sm text-gray-500 mt-3">${data.dateStart} al ${data.dateEnd}</p>
-                    </div>
-                    <div class="glass-card rounded-3xl p-6 border border-gray-100 shadow-sm">
-                        <p class="text-xs uppercase tracking-widest text-gray-400 mb-2">Engagement</p>
-                        <p class="text-3xl font-black text-coosajo-green">${data.metrics.engagement}%</p>
-                        <p class="text-sm text-gray-500 mt-3">Tasa de interacción del período.</p>
-                    </div>
-                    <div class="glass-card rounded-3xl p-6 border border-gray-100 shadow-sm">
-                        <p class="text-xs uppercase tracking-widest text-gray-400 mb-2">Posts</p>
-                        <p class="text-3xl font-black text-coosajo-blue">${data.metrics.posts}</p>
-                        <p class="text-sm text-gray-500 mt-3">Publicaciones registradas en la semana.</p>
-                    </div>
-                `;
-
-                renderPresentationComparePanel(data, compareData, compareWeek);
-                renderPresentationTopPosts(data.topPosts || []);
-
-                const analysisText = data.notes?.['note-analisis'] || '';
-                document.getElementById('presentation-notes').innerHTML = `
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-xl font-bold text-coosajo-blue">Análisis y aprendizajes</h3>
-                        <span class="text-sm text-gray-500">Incluye el comentario guardado</span>
-                    </div>
-                    <div class="rounded-3xl p-5 bg-white border border-gray-100 shadow-sm text-gray-700 text-sm leading-relaxed">
-                        ${analysisText ? analysisText.replace(/\n/g, '<br>') : 'No se ha agregado análisis para este período.'}
-                    </div>
-                `;
-            }
-
             // Exponer al scope global para los onchange de los inputs
             window.loadWeekData = function(weekStr) {
                 currentWeek = weekStr;
@@ -1330,7 +1299,7 @@
 
             // 10. MODO PRESENTACIÓN (Lógica)
             let currentSlide = 0;
-            const totalSlides = 5;
+            const totalSlides = 7;
             let presChartObj = null;
 
             window.startPresentation = function() {
@@ -1338,15 +1307,19 @@
                     showToast("Por favor selecciona un período con datos primero.");
                     return;
                 }
+                const presentationMode = document.getElementById('presentation-mode');
                 populatePresentationData();
-                document.getElementById('presentation-mode').classList.remove('hidden');
+                presentationMode.classList.remove('hidden');
+                requestAnimationFrame(() => presentationMode.classList.add('presentation-visible'));
                 showSlide(0);
                 document.addEventListener('keydown', handlePresKeys);
             };
 
             window.exitPresentation = function() {
-                document.getElementById('presentation-mode').classList.add('hidden');
+                const presentationMode = document.getElementById('presentation-mode');
+                presentationMode.classList.remove('presentation-visible');
                 document.removeEventListener('keydown', handlePresKeys);
+                setTimeout(() => presentationMode.classList.add('hidden'), 300);
             };
 
             function handlePresKeys(e) {
@@ -1413,8 +1386,10 @@
                 // Top Posts (Top 3)
                 const presGrid = document.getElementById('pres-top-grid');
                 presGrid.innerHTML = '';
-                const top3 = (data.topPosts || []).filter(p => p.title || p.impressions).slice(0, 3);
-                
+                const topPosts = (data.topPosts || []).filter(p => p.title || p.impressions || p.reach || p.interactions);
+                const top3 = topPosts.slice(0, 3);
+                const top7 = topPosts.slice(3, 10);
+
                 if(top3.length === 0) {
                     presGrid.innerHTML = '<div class="w-full text-center text-white/50 mt-20 text-2xl">No hay posts registrados para este período.</div>';
                 } else {
@@ -1446,10 +1421,73 @@
                     });
                 }
 
-                // Notas
+                // Top 7 remainder
+                const presTop7 = document.getElementById('pres-top7-grid');
+                presTop7.innerHTML = '';
+                if(top7.length === 0) {
+                    presTop7.innerHTML = '<div class="w-full text-center text-white/50 mt-20 text-2xl">No hay más posts para el top 7.</div>';
+                } else {
+                    top7.forEach((p, i) => {
+                        const imgSrc = p.image || `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1'><rect x='3' y='3' width='18' height='18' rx='2' ry='2'/><circle cx='8.5' cy='8.5' r='1.5'/><polyline points='21 15 16 10 5 21'/></svg>`;
+                        presTop7.innerHTML += `
+                        <div class="pres-glass rounded-3xl p-5 flex gap-4 items-center border border-white/10">
+                            <div class="w-24 h-24 bg-black/20 rounded-3xl overflow-hidden flex items-center justify-center">
+                                <img src="${imgSrc}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm uppercase tracking-widest text-white/50 mb-2">#${i + 4}</p>
+                                <h4 class="font-bold text-lg mb-2">${p.title || 'Post sin título'}</h4>
+                                <p class="text-sm text-white/60">Alcance ${Number(p.reach).toLocaleString()} · Impresiones ${Number(p.impressions).toLocaleString()}</p>
+                                <p class="text-sm text-white/60 mt-2">Interacciones ${Number(p.interactions).toLocaleString()} · Eng. ${p.engagement}%</p>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                // Comparativa semanal
+                const compareGrid = document.getElementById('pres-compare-grid');
+                compareGrid.innerHTML = '';
+                const compareWeek = data.compareWith || '';
+                if (!compareWeek || !appData[compareWeek]) {
+                    compareGrid.innerHTML = '<div class="w-full text-center text-white/50 mt-20 text-2xl">Selecciona una comparativa en el ingreso de datos para verla aquí.</div>';
+                } else {
+                    const compareData = appData[compareWeek];
+                    const metrics = [
+                        {key: 'followers', label: 'Seguidores'},
+                        {key: 'impressions', label: 'Impresiones'},
+                        {key: 'interactions', label: 'Interacciones'},
+                        {key: 'views', label: 'Visualizaciones'},
+                        {key: 'reactions', label: 'Reacciones'},
+                        {key: 'clicks', label: 'Clics'}
+                    ];
+                    metrics.forEach(metric => {
+                        const current = data.metrics[metric.key] || 0;
+                        const previous = compareData.metrics[metric.key] || 0;
+                        const delta = current - previous;
+                        const pct = previous ? ((delta / previous) * 100).toFixed(1) : 'N/A';
+                        const sign = delta >= 0 ? '+' : '';
+                        compareGrid.innerHTML += `
+                        <div class="pres-glass rounded-3xl p-6 border border-white/10 shadow-xl">
+                            <p class="text-sm uppercase tracking-widest text-white/50 mb-3">${metric.label}</p>
+                            <div class="flex items-end gap-3">
+                                <div>
+                                    <p class="text-3xl font-black">${current.toLocaleString()}</p>
+                                    <p class="text-xs text-white/50">Período actual</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-2xl font-bold text-coosajo-green">${sign}${delta.toLocaleString()}</p>
+                                    <p class="text-xs text-white/50">${pct === 'N/A' ? 'Sin referencia' : `${sign}${pct}%`}</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-white/50 mt-4">Base: ${previous.toLocaleString()} (${compareWeek})</p>
+                        </div>`;
+                    });
+                }
+
+                // Notas y análisis
                 document.getElementById('pres-note-imp').innerText = data.notes["note-impresiones"] || "No se registraron apuntes sobre las impresiones para esta semana.";
                 document.getElementById('pres-note-int').innerText = data.notes["note-interaccion"] || "No se registraron apuntes sobre las interacciones para esta semana.";
-                document.getElementById('pres-note-cont').innerText = data.notes["note-contenido"] || "No hay aprendizajes clave registrados.";
+                document.getElementById('pres-note-cont').innerText = data.notes["note-analisis"] || data.notes["note-contenido"] || "No hay aprendizajes clave registrados.";
             }
 
             // 11. UI Y NAVEGACIÓN TABS
