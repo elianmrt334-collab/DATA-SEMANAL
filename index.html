@@ -1,4 +1,524 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard & Reportes - COOSAJO R.L.</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Kalam:wght@400&display=swap" rel="stylesheet">
+
+    <!-- Configuración Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        handwriting: ['Kalam', 'cursive'], 
+                    },
+                    colors: {
+                        coosajo: {
+                            green: '#158e45',
+                            blue: '#172e59',
+                            lightGreen: '#e8f5ed',
+                            lightBlue: '#eef2f9',
+                            hoverGreen: '#127a3b'
+                        },
+                        note: '#fffbeb' 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .bg-gradient-main { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #158e45; }
+        
+        /* Premium Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border-color: rgba(21, 142, 69, 0.2);
+        }
+        
+        /* Textarea para Notas */
+        .note-area {
+            background-color: #fffdf0;
+            background-image: linear-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 100% 1.75rem;
+            line-height: 1.75rem;
+            border: 1px solid #fde68a;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+            resize: vertical;
+        }
+        .note-area:focus {
+            outline: none;
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+        }
+
+        .time-filter.active {
+            background-color: #158e45;
+            color: white;
+            box-shadow: 0 2px 4px rgba(21, 142, 69, 0.3);
+        }
+        
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .img-preview {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #f1f5f9;
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased h-screen flex flex-col overflow-hidden bg-gradient-main">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-coosajo-blue to-[#0e1d38] p-4 transition-opacity duration-500">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md transform transition-all">
+            <div class="flex justify-center mb-6">
+                <!-- Se usa el nombre del archivo con %20 para evitar errores de ruta -->
+                <img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" alt="COOSAJO Logo" class="h-16 object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-leaf text-coosajo-green text-5xl\'></i>'">
+            </div>
+            <h2 class="text-2xl font-extrabold text-coosajo-blue text-center mb-2">Iniciar Sesión</h2>
+            <p class="text-gray-500 text-sm text-center mb-8">Ingresa tus credenciales para acceder al Dashboard</p>
+            
+            <div id="login-error" class="hidden bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-4 border border-red-100 flex items-center gap-2">
+                <i class="fa-solid fa-circle-exclamation"></i> <span>Credenciales incorrectas</span>
+            </div>
+
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Usuario</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="login-user" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 focus:bg-white transition-colors" placeholder="Ej: sjemartinez">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Contraseña</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="password" id="login-pass" required class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 focus:bg-white transition-colors" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-coosajo-green to-green-600 hover:from-coosajo-hoverGreen hover:to-green-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 mt-4">
+                    Ingresar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- APP CONTENT -->
+    <div id="app-content" class="hidden flex-col h-full w-full">
+
+        <!-- Top Navigation -->
+        <nav class="bg-coosajo-blue text-white shadow-lg z-20 flex-shrink-0 relative">
+            <div class="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-coosajo-green via-green-400 to-coosajo-blue"></div>
+            <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white p-1.5 rounded-lg shadow-md flex items-center justify-center">
+                            <img src="LOGO%20COOSAJO%20SIN%20ESLOGAN.png" alt="COOSAJO Logo" class="h-6 sm:h-8 object-contain" onerror="this.outerHTML='<i class=\'fa-solid fa-leaf text-coosajo-green text-xl px-2\'></i>'">
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 sm:gap-4">
+                        <div class="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-3 py-1.5 rounded-lg border border-white/20 shadow-inner cursor-text">
+                            <i class="fa-solid fa-calendar-days text-coosajo-green drop-shadow-md"></i>
+                            <span class="text-sm font-medium hidden md:inline text-gray-200">Período:</span>
+                            <input type="text" id="global-week-selector" list="period-list" class="bg-transparent border-none text-white text-sm font-bold focus:outline-none focus:ring-0 w-32 sm:w-48 placeholder-gray-400" placeholder="Ej: 20-27 Abr">
+                            <datalist id="period-list"></datalist>
+                        </div>
+                        <div id="btn-logout" title="Cerrar Sesión" class="user-initial-badge w-9 h-9 rounded-full bg-gradient-to-br from-coosajo-green to-coosajo-hoverGreen flex items-center justify-center text-white font-bold shadow-lg border-2 border-white/50 cursor-pointer hover:scale-105 transition-transform">
+                            E
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- App Container -->
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Sidebar -->
+            <aside class="w-64 bg-white/80 backdrop-blur-md border-r border-gray-200 hidden md:flex flex-col flex-shrink-0 z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+                <div class="p-5 overflow-y-auto h-full">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2">Visualización</p>
+                    <nav class="space-y-2">
+                        <button id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl bg-coosajo-lightGreen text-coosajo-green transition-all shadow-sm border border-green-100">
+                            <i class="fa-solid fa-chart-pie w-5 text-lg"></i> Dashboard Analítico
+                        </button>
+                        <button id="nav-reporte" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-500 hover:bg-gray-50 hover:text-coosajo-blue transition-all border border-transparent">
+                            <i class="fa-solid fa-star w-5 text-lg text-yellow-500"></i> Top 10 Posts
+                        </button>
+                        <button id="nav-comparativa" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-500 hover:bg-gray-50 hover:text-coosajo-blue transition-all border border-transparent">
+                            <i class="fa-solid fa-code-compare w-5 text-lg text-blue-500"></i> Comparativa
+                        </button>
+                    </nav>
+
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 ml-2 mt-8">Gestión de Datos</p>
+                    <nav class="space-y-2">
+                        <button id="nav-ingreso" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-gray-500 hover:bg-gray-50 hover:text-coosajo-blue transition-all border border-transparent">
+                            <i class="fa-solid fa-pen-to-square w-5 text-lg"></i> Ingreso Manual
+                        </button>
+                        <button id="btn-clear-data" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl text-red-400 hover:bg-red-50 hover:text-red-600 transition-all mt-4 border border-transparent">
+                            <i class="fa-solid fa-trash-can w-5 text-lg"></i> Borrar Historial
+                        </button>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- Main Workspace -->
+            <main class="flex-1 overflow-y-auto relative w-full">
+                <div class="p-4 md:p-8 max-w-7xl mx-auto pb-24 md:pb-8">
+                    
+                    <!-- ========================================== -->
+                    <!-- VISTA: DASHBOARD                           -->
+                    <!-- ========================================== -->
+                    <div id="tab-dashboard" class="tab-content fade-in block space-y-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-4 gap-4">
+                            <div>
+                                <h2 class="text-3xl font-extrabold text-coosajo-blue tracking-tight drop-shadow-sm">Rendimiento Social</h2>
+                                <p class="text-gray-500 text-sm mt-1" id="dash-week-label">Mostrando datos del período seleccionado.</p>
+                            </div>
+                            
+                            <!-- Botones de Filtro Temporal (Estéticos) -->
+                            <div class="flex bg-white p-1 rounded-xl border border-gray-200 shadow-sm">
+                                <button onclick="window.setActiveFilter(this)" class="time-filter px-4 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-100 transition-all">Hoy</button>
+                                <button onclick="window.setActiveFilter(this)" class="time-filter active px-4 py-1.5 text-xs font-bold rounded-lg transition-all">7 Días</button>
+                                <button onclick="window.setActiveFilter(this)" class="time-filter px-4 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:bg-gray-100 transition-all">Mes</button>
+                            </div>
+                        </div>
+
+                        <!-- KPI Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightBlue rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 relative z-10">Comunidad Total</p>
+                                <h3 class="text-4xl font-black text-coosajo-blue relative z-10" id="val-followers">0</h3>
+                                
+                                <div class="mt-3 bg-white/80 backdrop-blur-sm rounded-xl p-2.5 border border-gray-200 shadow-sm relative z-10 flex flex-col gap-1">
+                                    <p class="text-[9px] uppercase font-bold text-gray-500 tracking-wider">Balance del período</p>
+                                    <div class="flex items-center justify-between text-sm font-black mt-1">
+                                        <div class="text-coosajo-green bg-green-50 border border-green-100 px-2 py-1 rounded-lg flex items-center gap-1" title="Seguidores Ganados">
+                                            <i class="fa-solid fa-arrow-up text-[10px]"></i><span id="val-gained">0</span>
+                                        </div>
+                                        <div class="text-gray-400 font-bold text-sm">-</div>
+                                        <div class="text-red-500 bg-red-50 border border-red-100 px-2 py-1 rounded-lg flex items-center gap-1" title="Seguidores Perdidos">
+                                            <i class="fa-solid fa-arrow-down text-[10px]"></i><span id="val-lost">0</span>
+                                        </div>
+                                        <div class="text-gray-400 font-bold text-sm">=</div>
+                                        <div class="text-coosajo-blue text-base flex items-center gap-1 bg-coosajo-lightBlue border border-blue-200 px-2.5 py-1 rounded-lg" title="Crecimiento Neto">
+                                            <span id="val-net">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightGreen rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 relative z-10">Impresiones</p>
+                                <h3 class="text-4xl font-black text-coosajo-green relative z-10" id="val-impressions">0</h3>
+                            </div>
+                            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightBlue rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 relative z-10">Interacciones</p>
+                                <h3 class="text-4xl font-black text-coosajo-blue relative z-10" id="val-interactions">0</h3>
+                            </div>
+                            <div class="glass-card rounded-2xl p-6 relative overflow-hidden group border-b-4 border-b-coosajo-green">
+                                <div class="absolute top-0 right-0 w-24 h-24 bg-coosajo-lightGreen rounded-bl-full -mr-4 -mt-4 opacity-50 group-hover:scale-110 transition-transform"></div>
+                                <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-2 relative z-10">Engagement Rate</p>
+                                <h3 class="text-4xl font-black text-gray-800 relative z-10" id="val-engagement">0</h3>
+                            </div>
+                        </div>
+
+                        <!-- Gráfico + Notas -->
+                        <div class="glass-card p-6 rounded-3xl mt-6">
+                            <h3 class="text-xl font-bold text-coosajo-blue flex items-center gap-2 mb-6">
+                                <span class="bg-coosajo-lightGreen p-2 rounded-lg text-coosajo-green"><i class="fa-solid fa-chart-area"></i></span>
+                                Evolución Diaria
+                            </h3>
+                            <div class="h-72 w-full relative mb-6">
+                                <canvas id="mainEvolucionChart"></canvas>
+                            </div>
+                            
+                            <div class="bg-yellow-50/50 rounded-2xl p-5 border border-yellow-100 shadow-inner">
+                                <div class="flex items-center gap-2 mb-3 text-yellow-700 font-bold text-sm">
+                                    <i class="fa-solid fa-thumbtack text-yellow-500"></i> Apuntes del Rendimiento Global
+                                </div>
+                                <textarea id="note-impresiones" class="note-area w-full rounded-xl p-4 text-gray-700 font-handwriting text-xl" rows="3" placeholder="Escribe aquí por qué crees que subieron o bajaron las métricas en general..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Métricas Secundarias + Notas -->
+                        <div class="glass-card p-6 rounded-3xl">
+                            <h3 class="text-xl font-bold text-coosajo-blue mb-6 flex items-center gap-2">
+                                <span class="bg-coosajo-lightBlue p-2 rounded-lg text-coosajo-blue"><i class="fa-solid fa-heart"></i></span>
+                                Desglose de Impacto
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pb-6">
+                                <div class="text-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                                    <p class="text-3xl font-black text-coosajo-blue mb-1" id="val-posts">0</p>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Posts Realizados</p>
+                                </div>
+                                <div class="text-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm border-b-2 border-b-coosajo-green">
+                                    <p class="text-3xl font-black text-coosajo-green mb-1" id="val-views">0</p>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Visualizaciones</p>
+                                </div>
+                                <div class="text-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                                    <p class="text-3xl font-black text-coosajo-blue mb-1" id="val-reactions">0</p>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Reacciones</p>
+                                </div>
+                                <div class="text-center p-5 bg-white rounded-2xl border border-gray-100 shadow-sm border-b-2 border-b-coosajo-green">
+                                    <p class="text-3xl font-black text-coosajo-green mb-1" id="val-clicks">0</p>
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Clics en Enlace</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-50/50 rounded-2xl p-5 border border-yellow-100 shadow-inner">
+                                <div class="flex items-center gap-2 mb-3 text-yellow-700 font-bold text-sm">
+                                    <i class="fa-solid fa-thumbtack text-yellow-500"></i> Análisis de Interacción
+                                </div>
+                                <textarea id="note-interaccion" class="note-area w-full rounded-xl p-4 text-gray-700 font-handwriting text-xl" rows="3" placeholder="Anota comentarios sobre el nivel de reacciones, clics o compartidos..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- VISTA: TOP 10 POSTS                        -->
+                    <!-- ========================================== -->
+                    <div id="tab-reporte" class="tab-content fade-in hidden space-y-6">
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-coosajo-blue tracking-tight">Top 10 Mejores Publicaciones</h2>
+                            <p class="text-gray-500 text-sm mt-1">El contenido más exitoso del período seleccionado.</p>
+                        </div>
+
+                        <!-- Grid del Top 10 -->
+                        <div id="top-posts-display-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+
+                        <!-- Notas Generales de Contenido -->
+                        <div class="glass-card rounded-3xl p-6 md:p-8 mt-6">
+                            <div class="flex items-center gap-3 mb-4 text-coosajo-blue font-bold text-xl">
+                                <div class="bg-yellow-100 p-3 rounded-full text-yellow-600"><i class="fa-solid fa-lightbulb"></i></div>
+                                Aprendizajes del Período
+                            </div>
+                            <p class="text-sm text-gray-500 mb-6 pl-2">Utiliza este espacio para documentar qué tipo de contenido funcionó mejor.</p>
+                            <div class="bg-white p-2 rounded-2xl border border-yellow-200 shadow-sm">
+                                <textarea id="note-contenido" class="note-area w-full rounded-xl p-6 text-gray-800 font-handwriting text-2xl leading-relaxed" rows="5" placeholder="Ej: Los videos cortos tuvieron un 50% más de retención..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- VISTA: COMPARATIVA                         -->
+                    <!-- ========================================== -->
+                    <div id="tab-comparativa" class="tab-content fade-in hidden space-y-6">
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-coosajo-blue tracking-tight">Comparativa de Períodos</h2>
+                            <p class="text-gray-500 text-sm mt-1">Selecciona dos períodos ingresados manualmente para ver su diferencia gráfica y numérica.</p>
+                        </div>
+
+                        <div class="glass-card p-6 rounded-3xl">
+                            <div class="flex flex-col md:flex-row gap-6 items-center justify-between mb-8">
+                                <div class="w-full md:w-5/12">
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 text-center md:text-left">Período A (Base)</label>
+                                    <select id="comp-period-1" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 font-bold text-gray-500"></select>
+                                </div>
+                                <div class="hidden md:flex w-2/12 justify-center">
+                                    <div class="w-12 h-12 rounded-full bg-coosajo-lightBlue text-coosajo-blue flex items-center justify-center font-bold text-xl shadow-inner border border-blue-100">VS</div>
+                                </div>
+                                <div class="w-full md:w-5/12">
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 text-center md:text-right">Período B (A Comparar)</label>
+                                    <select id="comp-period-2" class="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-coosajo-green outline-none bg-gray-50 font-bold text-coosajo-green"></select>
+                                </div>
+                            </div>
+
+                            <!-- Gráfico de Comparativa -->
+                            <div id="comp-chart-container" class="hidden mb-10 pb-6 border-b border-gray-100">
+                                <h3 class="text-lg font-bold text-coosajo-blue mb-6 flex items-center gap-2">
+                                    <i class="fa-solid fa-chart-line text-blue-500"></i> Evolución Diaria Comparada (Impresiones)
+                                </h3>
+                                <div class="h-80 w-full relative">
+                                    <canvas id="compEvolucionChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm whitespace-nowrap min-w-[600px]">
+                                    <thead class="bg-coosajo-lightBlue text-coosajo-blue border-b border-blue-200">
+                                        <tr>
+                                            <th class="p-4 font-bold rounded-tl-lg">Métrica</th>
+                                            <th class="p-4 font-bold text-center" id="comp-label-1">Período A</th>
+                                            <th class="p-4 font-bold text-center" id="comp-label-2">Período B</th>
+                                            <th class="p-4 font-bold text-center rounded-tr-lg">Diferencia</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="comp-table-body" class="divide-y divide-gray-100">
+                                        <tr><td colspan="4" class="p-6 text-center text-gray-400 font-medium">Selecciona dos períodos válidos en los menús de arriba para comparar.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- VISTA: INGRESO MANUAL DE DATOS             -->
+                    <!-- ========================================== -->
+                    <div id="tab-ingreso" class="tab-content fade-in hidden space-y-6">
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-coosajo-blue tracking-tight">Ingreso de Datos</h2>
+                            <p class="text-gray-500 text-sm mt-1">Digita la información obtenida desde Metricool.</p>
+                        </div>
+
+                        <form id="manual-data-form" class="space-y-6">
+                            
+                            <div class="bg-gradient-to-r from-coosajo-blue to-[#1a3a70] text-white p-6 rounded-3xl shadow-md relative overflow-hidden">
+                                <i class="fa-solid fa-keyboard absolute -right-4 -bottom-4 text-7xl opacity-10"></i>
+                                <label class="block font-bold mb-3 text-lg relative z-10">1. Nombra el Período a Ingresar/Editar:</label>
+                                <div class="relative z-10">
+                                    <input type="text" id="form-week" list="period-list" required class="w-full md:w-80 p-3.5 rounded-xl border-none text-gray-800 font-bold focus:ring-4 focus:ring-coosajo-green/50 outline-none shadow-inner" placeholder="Ej: 20 al 26 de Abril">
+                                </div>
+                            </div>
+
+                            <div class="glass-card p-6 rounded-3xl">
+                                <h3 class="text-lg font-bold text-coosajo-blue border-b border-gray-100 pb-3 mb-5">2. Métricas Principales (Totales)</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Seguidores Totales</label><input type="number" id="form-followers" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-coosajo-green uppercase tracking-widest mb-2">Seg. Ganados</label><input type="number" id="form-gained" class="w-full p-3 rounded-xl border border-green-200 bg-green-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-red-500 uppercase tracking-widest mb-2">Seg. Perdidos</label><input type="number" id="form-lost" class="w-full p-3 rounded-xl border border-red-200 bg-red-50 outline-none"></div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Impresiones</label><input type="number" id="form-impressions" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Interacciones</label><input type="number" id="form-interactions" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Engagement Rate</label><input type="number" step="0.01" id="form-engagement" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card p-6 rounded-3xl">
+                                <h3 class="text-lg font-bold text-coosajo-blue border-b border-gray-100 pb-3 mb-5">3. Detalles de Interacción</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Posts Totales</label><input type="number" id="form-posts" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Visualizaciones</label><input type="number" id="form-views" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Reacciones</label><input type="number" id="form-reactions" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Clics</label><input type="number" id="form-clicks" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none"></div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card p-6 rounded-3xl">
+                                <h3 class="text-lg font-bold text-coosajo-blue border-b border-gray-100 pb-3 mb-5">4. Datos Diarios (Gráfica)</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-7 gap-3">
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Lunes</label><input type="number" id="d1" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Martes</label><input type="number" id="d2" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Miércoles</label><input type="number" id="d3" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Jueves</label><input type="number" id="d4" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Viernes</label><input type="number" id="d5" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Sábado</label><input type="number" id="d6" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                    <div><label class="block text-xs font-bold text-gray-400 mb-2">Domingo</label><input type="number" id="d7" class="w-full p-2.5 border border-gray-200 bg-gray-50 rounded-lg outline-none"></div>
+                                </div>
+                            </div>
+
+                            <!-- TOP 10 POSTS -->
+                            <div class="glass-card p-6 rounded-3xl overflow-hidden">
+                                <h3 class="text-lg font-bold text-coosajo-blue border-b border-gray-100 pb-3 mb-5">5. Top 10 Posts (Métricas y Foto)</h3>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm whitespace-nowrap min-w-[800px]">
+                                        <thead class="bg-gray-50 text-gray-600">
+                                            <tr>
+                                                <th class="p-3 font-semibold rounded-tl-lg">#</th>
+                                                <th class="p-3 font-semibold">Imagen</th>
+                                                <th class="p-3 font-semibold">Título / Resumen</th>
+                                                <th class="p-3 font-semibold">Alcance</th>
+                                                <th class="p-3 font-semibold">Impresiones</th>
+                                                <th class="p-3 font-semibold">Interacciones</th>
+                                                <th class="p-3 font-semibold rounded-tr-lg">Engagement</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="top-posts-input-body" class="divide-y divide-gray-100">
+                                            <!-- Se llena dinámicamente con JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-3"><i class="fa-solid fa-circle-info"></i> Las imágenes se comprimen automáticamente para no saturar el navegador.</p>
+                            </div>
+
+                            <div class="flex justify-end pt-4 pb-10">
+                                <button type="button" id="btn-save-data" class="bg-gradient-to-r from-coosajo-green to-green-600 hover:from-coosajo-hoverGreen hover:to-green-700 text-white font-bold py-4 px-10 rounded-2xl shadow-[0_10px_20px_rgba(21,142,69,0.3)] transition-all transform hover:-translate-y-1 flex items-center gap-3 text-lg">
+                                    <i class="fa-solid fa-floppy-disk"></i> Guardar Período Completo
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+
+        <!-- Mobile Bottom Navigation -->
+        <div class="md:hidden fixed bottom-0 w-full bg-white/90 backdrop-blur-md shadow-[0_-10px_20px_rgba(0,0,0,0.05)] flex justify-around p-2 z-50 border-t border-gray-100 pb-safe">
+            <button id="mob-dashboard" class="mob-btn text-coosajo-green flex flex-col items-center justify-center p-2 rounded-xl w-1/4 bg-coosajo-lightGreen/50">
+                <i class="fa-solid fa-chart-pie text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Dash</span>
+            </button>
+            <button id="mob-reporte" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4">
+                <i class="fa-solid fa-star text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Top 10</span>
+            </button>
+            <button id="mob-comparativa" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4">
+                <i class="fa-solid fa-code-compare text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">VS</span>
+            </button>
+            <button id="mob-ingreso" class="mob-btn text-gray-400 hover:text-coosajo-blue flex flex-col items-center justify-center p-2 rounded-xl w-1/4">
+                <i class="fa-solid fa-keyboard text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Datos</span>
+            </button>
+        </div>
+
         <!-- Toast de Éxito -->
         <div id="toast" class="fixed top-20 right-5 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-4">
             <div class="bg-green-500 rounded-full w-10 h-10 flex items-center justify-center shadow-inner"><i class="fa-solid fa-check text-white text-lg"></i></div>
@@ -8,7 +528,7 @@
             </div>
         </div>
 
-    </div> <!-- CIERRE DE APP CONTENT -->
+    </div>
 
     <!-- ======================================================= -->
     <!-- SCRIPT PRINCIPAL E INTEGRACIÓN CON FIREBASE             -->
@@ -152,7 +672,7 @@
 
             } catch (error) {
                 console.error("Error cargando Firebase: ", error);
-                alert("Error al conectar con la base de datos. Verifica tu configuración de Firebase.");
+                alert("Error al conectar con la base de datos. Verifica tu conexión o configuración de Firebase.");
             }
         }
 
@@ -297,7 +817,10 @@
                     sel1.value = keys[0];
                     sel2.value = keys[0];
                 }
-                window.renderComparativa();
+                // Si la comparativa fue la última vista, renderizar de nuevo
+                if(!document.getElementById('tab-comparativa').classList.contains('hidden')){
+                    window.renderComparativa();
+                }
             }
         }
 
@@ -374,6 +897,15 @@
         document.querySelectorAll('.note-area').forEach(textarea => {
             textarea.addEventListener('input', window.saveNotes);
         });
+
+        window.setActiveFilter = function(btn) {
+            document.querySelectorAll('.time-filter').forEach(el => {
+                el.classList.remove('active', 'text-white');
+                el.classList.add('text-gray-500');
+            });
+            btn.classList.add('active', 'text-white');
+            btn.classList.remove('text-gray-500');
+        };
 
         inputGlobalWeek.addEventListener('change', (e) => window.loadWeekData(e.target.value));
         inputFormWeek.addEventListener('change', (e) => loadFormForWeek(e.target.value));
