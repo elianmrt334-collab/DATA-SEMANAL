@@ -488,7 +488,18 @@
     <!-- ======================================================= -->
     <!-- SCRIPT PRINCIPAL (Todo el JS encapsulado correctamente) -->
     <!-- ======================================================= -->
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDocs, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // CONFIGURACIÓN FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyACfn6C6_XqLDQI29f6uHUUwlCQkSCXNYk",
+            projectId: "costos-comunicacion-digital"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         document.addEventListener('DOMContentLoaded', () => {
             
             // 1. BASE DE DATOS Y USUARIOS
@@ -518,8 +529,8 @@
                 }
             };
 
-            let appData = JSON.parse(localStorage.getItem('coosajo_dashboard_data')) || initialData;
-            let currentWeek = Object.keys(appData).length > 0 ? Object.keys(appData)[0] : "";
+            let appData = {};
+            let currentWeek = "";
             let mainChart = null;
 
             // 2. ELEMENTOS DEL DOM
@@ -695,9 +706,34 @@
                 initAppData();
             }
 
-            // 4. INICIALIZACIÓN DE DATOS Y UI
-            function initAppData() {
+            // 4. INICIALIZACIÓN DE DATOS Y UI DESDE FIREBASE
+            async function initAppData() {
                 Chart.defaults.font.family = "'Inter', sans-serif";
+                
+                // Mostrar un pequeño toast para informar que se está conectando
+                showToast("Conectando con la base de datos...");
+
+                try {
+                    // Obtener todos los reportes desde Firebase
+                    const querySnapshot = await getDocs(collection(db, "reportes"));
+                    querySnapshot.forEach((doc) => {
+                        appData[doc.id] = doc.data();
+                    });
+
+                    // Si Firebase está vacío, cargar la data inicial como ejemplo
+                    if (Object.keys(appData).length === 0) {
+                        appData = initialData;
+                        for (const [key, value] of Object.entries(appData)) {
+                            await setDoc(doc(db, "reportes", key), value);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error al conectar con Firebase:", error);
+                    alert("No se pudieron cargar los datos desde la nube. Verifica las reglas de Firebase.");
+                }
+
+                currentWeek = Object.keys(appData).length > 0 ? Object.keys(appData)[0] : "";
+
                 renderTopPostsInput();
                 updatePeriodDatalist();
                 
@@ -871,7 +907,8 @@
                 loadFormForWeek(weekStr);
             }
 
-            // SINCRONIZACIÓN DE NOTAS EN TIEMPO REAL
+            // SINCRONIZACIÓN DE NOTAS EN TIEMPO REAL CON FIREBASE
+            let noteTimeout;
             window.saveNotes = function() {
                 if (!currentWeek) return;
                 if (!appData[currentWeek]) {
@@ -883,7 +920,15 @@
                 appData[currentWeek].notes["note-interaccion"] = document.getElementById('note-interaccion').value;
                 appData[currentWeek].notes["note-contenido"] = document.getElementById('note-contenido').value;
                 
-                localStorage.setItem('coosajo_dashboard_data', JSON.stringify(appData));
+                // Debounce para no saturar Firebase con peticiones mientras se escribe
+                clearTimeout(noteTimeout);
+                noteTimeout = setTimeout(async () => {
+                    try {
+                        await setDoc(doc(db, "reportes", currentWeek), appData[currentWeek], { merge: true });
+                    } catch (error) {
+                        console.error("Error al guardar notas en Firebase:", error);
+                    }
+                }, 1500); 
             }
 
             // Añadir event listeners a textareas de notas
@@ -986,7 +1031,7 @@
                 }
             }
 
-            btnSaveData.addEventListener('click', () => {
+            btnSaveData.addEventListener('click', async () => {
                 updatePeriodFromPickers();
                 const weekToSave = inputFormWeek.value.trim();
                 if(!inputFormDateStart.value || !inputFormDateEnd.value) {
@@ -1033,26 +1078,51 @@
                     topPosts: topPostsArray
                 };
 
-                localStorage.setItem('coosajo_dashboard_data', JSON.stringify(appData));
-                updatePeriodDatalist(); 
-                
-                if(weekToSave === currentWeek || currentWeek === "") {
-                    window.loadWeekData(weekToSave);
-                }
+                // GUARDAR EN FIREBASE
+                const originalText = btnSaveData.innerHTML;
+                btnSaveData.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando en Firebase...';
+                btnSaveData.disabled = true;
 
-                showToast(`Datos guardados: ${weekToSave}`);
-                window.switchTab('dashboard'); 
+                try {
+                    await setDoc(doc(db, "reportes", weekToSave), appData[weekToSave]);
+                    
+                    updatePeriodDatalist(); 
+                    
+                    if(weekToSave === currentWeek || currentWeek === "") {
+                        window.loadWeekData(weekToSave);
+                    }
+
+                    showToast(`Datos guardados: ${weekToSave}`);
+                    window.switchTab('dashboard'); 
+
+                } catch (error) {
+                    alert("Error al guardar en la nube: " + error.message);
+                } finally {
+                    btnSaveData.innerHTML = originalText;
+                    btnSaveData.disabled = false;
+                }
             });
 
-            btnClearData.addEventListener('click', () => {
-                if(confirm("¿Estás seguro de borrar todo el historial? Esto no se puede deshacer.")) {
-                    appData = {};
-                    localStorage.removeItem('coosajo_dashboard_data');
-                    updatePeriodDatalist();
-                    inputGlobalPeriodSelect.value = "";
-                    inputGlobalWeek.value = "";
-                    window.loadWeekData("");
-                    showToast("Historial eliminado completamente.");
+            btnClearData.addEventListener('click', async () => {
+                if(confirm("¿Estás seguro de borrar todo el historial en la NUBE? Esto no se puede deshacer.")) {
+                    try {
+                        // Borrar todos los documentos de la colección "reportes" en Firebase
+                        const querySnapshot = await getDocs(collection(db, "reportes"));
+                        const deletePromises = [];
+                        querySnapshot.forEach((d) => {
+                            deletePromises.push(deleteDoc(doc(db, "reportes", d.id)));
+                        });
+                        await Promise.all(deletePromises);
+
+                        appData = {};
+                        updatePeriodDatalist();
+                        inputGlobalPeriodSelect.value = "";
+                        inputGlobalWeek.value = "";
+                        window.loadWeekData("");
+                        showToast("Historial eliminado completamente.");
+                    } catch (error) {
+                        alert("Error al borrar el historial en Firebase: " + error.message);
+                    }
                 }
             });
 
