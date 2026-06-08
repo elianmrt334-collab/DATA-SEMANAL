@@ -388,6 +388,33 @@
                     </div>
 
                     <!-- ========================================== -->
+                    <!-- VISTA: PRESENTACIÓN                       -->
+                    <!-- ========================================== -->
+                    <div id="tab-presentacion" class="tab-content fade-in hidden space-y-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                            <div>
+                                <h2 class="text-3xl font-extrabold text-coosajo-blue tracking-tight">Modo Presentación</h2>
+                                <p class="text-gray-500 text-sm mt-1">Visualiza métricas ordenadas, comparativas semanales y el top 10 en top 3 / top 7.</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs uppercase tracking-widest text-gray-400 mb-1">Período seleccionado</p>
+                                <p id="presentation-period-label" class="text-lg font-semibold text-coosajo-green">Ninguno</p>
+                                <p id="presentation-compare-label" class="text-sm text-gray-500">Sin comparativa seleccionada</p>
+                            </div>
+                        </div>
+
+                        <div id="presentation-summary" class="grid grid-cols-1 lg:grid-cols-3 gap-5"></div>
+                        <div id="presentation-compare-panel" class="glass-card rounded-3xl p-6"></div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div id="presentation-top3" class="glass-card rounded-3xl p-6"></div>
+                            <div id="presentation-top7" class="glass-card rounded-3xl p-6"></div>
+                        </div>
+
+                        <div id="presentation-notes" class="glass-card rounded-3xl p-6"></div>
+                    </div>
+
+                    <!-- ========================================== -->
                     <!-- VISTA: INGRESO MANUAL DE DATOS             -->
                     <!-- ========================================== -->
                     <div id="tab-ingreso" class="tab-content fade-in hidden space-y-6">
@@ -418,6 +445,18 @@
                                         </div>
                                     </div>
                                     <p id="form-period-preview" class="text-sm font-semibold text-coosajo-green bg-white rounded-xl px-4 py-2.5 inline-block shadow-inner"></p>
+                                    <div class="bg-white/90 p-4 rounded-3xl border border-gray-200 shadow-sm">
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Comparar con</label>
+                                                <select id="form-compare-week" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none text-gray-800"></select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Análisis rápido</label>
+                                                <textarea id="form-analisis" rows="3" class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 outline-none text-gray-700" placeholder="Describe hallazgos clave para la presentación..."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <input type="hidden" id="form-week" required>
                                 </div>
                             </div>
@@ -678,6 +717,8 @@
             const inputFormWeekPicker = document.getElementById('form-week-picker');
             const inputFormDateStart = document.getElementById('form-date-start');
             const inputFormDateEnd = document.getElementById('form-date-end');
+            const inputFormCompareWeek = document.getElementById('form-compare-week');
+            const inputFormAnalisis = document.getElementById('form-analisis');
             const formPeriodPreview = document.getElementById('form-period-preview');
 
             const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -899,6 +940,175 @@
                 if (currentWeek && keys.includes(currentWeek)) inputGlobalPeriodSelect.value = currentWeek;
             }
 
+            function updateCompareSelectOptions(activeWeek = '') {
+                if (!inputFormCompareWeek) return;
+                inputFormCompareWeek.innerHTML = '<option value="">Ninguna</option>';
+                Object.keys(appData).forEach(key => {
+                    if (key === activeWeek) return;
+                    const opt = document.createElement('option');
+                    opt.value = key;
+                    opt.textContent = key;
+                    inputFormCompareWeek.appendChild(opt);
+                });
+                if (activeWeek && appData[activeWeek]?.compareWith) {
+                    inputFormCompareWeek.value = appData[activeWeek].compareWith;
+                }
+            }
+
+            function formatDelta(current, previous) {
+                if (previous === 0) {
+                    return current === 0 ? '0' : `+${current.toLocaleString()} (nuevo)`;
+                }
+                const diff = current - previous;
+                const pct = (diff / previous) * 100;
+                const sign = diff >= 0 ? '+' : '';
+                return `${sign}${diff.toLocaleString()} (${sign}${pct.toFixed(1)}%)`;
+            }
+
+            function renderPresentationTopPosts(posts) {
+                const top3Container = document.getElementById('presentation-top3');
+                const top7Container = document.getElementById('presentation-top7');
+                const top3 = posts.slice(0, 3);
+                const top7 = posts.slice(3, 10);
+
+                top3Container.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-coosajo-blue">Top 3</h3>
+                        <span class="text-sm text-gray-500">Los mejores posts del período</span>
+                    </div>
+                    <div class="space-y-4">${top3.map((post, index) => `
+                        <div class="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm flex items-center gap-4">
+                            <div class="w-24 h-24 bg-gray-100 rounded-3xl overflow-hidden flex items-center justify-center">
+                                <img src="${post.image || 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23cbd5e1\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\'/></svg>'}" class="w-full h-full object-cover" alt="Post ${index + 1}">
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 mb-1">Top #${index + 1}</p>
+                                <h4 class="font-bold text-coosajo-blue">${post.title || 'Post sin título'}</h4>
+                                <p class="text-xs text-gray-500 mt-2">Alcance ${post.reach.toLocaleString()} · Impresiones ${post.impressions.toLocaleString()} · Interacciones ${post.interactions.toLocaleString()}</p>
+                            </div>
+                        </div>`).join('')}</div>`;
+
+                top7Container.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-coosajo-blue">Top 7</h3>
+                        <span class="text-sm text-gray-500">Siguientes publicaciones destacadas</span>
+                    </div>
+                    <div class="space-y-3">${top7.map((post, index) => `
+                        <div class="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div>
+                                    <p class="text-sm font-semibold text-coosajo-blue">#${index + 4} ${post.title || 'Sin título'}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Alcance ${post.reach.toLocaleString()} · Impresiones ${post.impressions.toLocaleString()}</p>
+                                </div>
+                                <div class="text-right text-xs text-gray-500">
+                                    Interacciones ${post.interactions.toLocaleString()} · Eng. ${post.engagement}%
+                                </div>
+                            </div>
+                        </div>`).join('')}</div>`;
+            }
+
+            function renderPresentationComparePanel(currentData, compareData, compareWeek) {
+                const panel = document.getElementById('presentation-compare-panel');
+                if (!currentData) {
+                    panel.innerHTML = `<div class="text-center text-gray-500">No hay datos para mostrar en la presentación.</div>`;
+                    return;
+                }
+                if (!compareData) {
+                    panel.innerHTML = `
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-coosajo-blue">Comparativa Semanal</h3>
+                            <span class="text-sm text-gray-500">Selecciona comparativa en Ingreso Manual</span>
+                        </div>
+                        <div class="text-sm text-gray-600">Aún no se ha seleccionado una comparativa para este período. Ve a Ingreso Manual y elige una semana para comparar.</div>
+                    `;
+                    return;
+                }
+                panel.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-coosajo-blue">Comparativa Semanal</h3>
+                            <p class="text-sm text-gray-500">${compareWeek}</p>
+                        </div>
+                        <span class="text-sm text-green-700 font-semibold">Comparando datos</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${['followers','impressions','interactions','views','reactions','clicks'].map(metric => {
+                            const current = currentData.metrics[metric] || 0;
+                            const previous = compareData.metrics[metric] || 0;
+                            const label = metric === 'views' ? 'Visualizaciones' : metric === 'followers' ? 'Seguidores' : metric === 'impressions' ? 'Impresiones' : metric === 'interactions' ? 'Interacciones' : metric === 'reactions' ? 'Reacciones' : 'Clics';
+                            return `
+                                <div class="bg-white rounded-3xl p-4 border border-gray-100 shadow-sm">
+                                    <p class="text-xs uppercase tracking-widest text-gray-400 mb-2">${label}</p>
+                                    <p class="text-2xl font-black text-coosajo-blue mb-1">${current.toLocaleString()}</p>
+                                    <p class="text-sm text-gray-500">Comparar ${previous.toLocaleString()}</p>
+                                    <p class="text-sm font-semibold text-gray-700 mt-2">${formatDelta(current, previous)}</p>
+                                </div>`;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            window.startPresentation = function() {
+                const selectedWeek = currentWeek || inputFormWeek.value || Object.keys(appData)[0] || '';
+                if (!selectedWeek) {
+                    showToast('Selecciona primero un período para presentar');
+                    return;
+                }
+                window.switchTab('presentacion');
+                renderPresentation(selectedWeek);
+            }
+
+            function renderPresentation(weekStr) {
+                const data = appData[weekStr];
+                const compareWeek = data?.compareWith || '';
+                const compareData = compareWeek ? appData[compareWeek] : null;
+                document.getElementById('presentation-period-label').innerText = weekStr || 'Ninguno';
+                document.getElementById('presentation-compare-label').innerText = compareWeek ? `Comparativa: ${compareWeek}` : 'Sin comparativa seleccionada';
+
+                const summary = document.getElementById('presentation-summary');
+                if (!data) {
+                    summary.innerHTML = `<div class="glass-card rounded-3xl p-6 text-center text-gray-500">No hay datos cargados para este período.</div>`;
+                    document.getElementById('presentation-notes').innerHTML = `<div class="text-gray-500">No hay análisis o notas disponibles.</div>`;
+                    document.getElementById('presentation-top3').innerHTML = '';
+                    document.getElementById('presentation-top7').innerHTML = '';
+                    document.getElementById('presentation-compare-panel').innerHTML = '';
+                    return;
+                }
+
+                summary.innerHTML = `
+                    <div class="glass-card rounded-3xl p-6 border border-gray-100 shadow-sm">
+                        <p class="text-xs uppercase tracking-widest text-gray-400 mb-2">Semana</p>
+                        <p class="text-2xl font-black text-coosajo-blue">${weekStr}</p>
+                        <p class="text-sm text-gray-500 mt-3">${data.dateStart} al ${data.dateEnd}</p>
+                    </div>
+                    <div class="glass-card rounded-3xl p-6 border border-gray-100 shadow-sm">
+                        <p class="text-xs uppercase tracking-widest text-gray-400 mb-2">Engagement</p>
+                        <p class="text-3xl font-black text-coosajo-green">${data.metrics.engagement}%</p>
+                        <p class="text-sm text-gray-500 mt-3">Tasa de interacción del período.</p>
+                    </div>
+                    <div class="glass-card rounded-3xl p-6 border border-gray-100 shadow-sm">
+                        <p class="text-xs uppercase tracking-widest text-gray-400 mb-2">Posts</p>
+                        <p class="text-3xl font-black text-coosajo-blue">${data.metrics.posts}</p>
+                        <p class="text-sm text-gray-500 mt-3">Publicaciones registradas en la semana.</p>
+                    </div>
+                `;
+
+                renderPresentationComparePanel(data, compareData, compareWeek);
+                renderPresentationTopPosts(data.topPosts || []);
+
+                const analysisText = data.notes?.['note-analisis'] || '';
+                document.getElementById('presentation-notes').innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold text-coosajo-blue">Análisis y aprendizajes</h3>
+                        <span class="text-sm text-gray-500">Incluye el comentario guardado</span>
+                    </div>
+                    <div class="rounded-3xl p-5 bg-white border border-gray-100 shadow-sm text-gray-700 text-sm leading-relaxed">
+                        ${analysisText ? analysisText.replace(/\n/g, '<br>') : 'No se ha agregado análisis para este período.'}
+                    </div>
+                `;
+            }
+
+            // Exponer al scope global para los onchange de los inputs
             window.loadWeekData = function(weekStr) {
                 currentWeek = weekStr;
                 inputGlobalPeriodSelect.value = weekStr || '';
@@ -982,6 +1192,7 @@
                     inputFormWeek.value = weekStr;
                     formPeriodPreview.textContent = `Período: ${weekStr}`;
                 }
+                updateCompareSelectOptions(weekStr);
                 if (data && data.metrics) {
                     document.getElementById('form-followers').value = data.metrics.followers || '';
                     document.getElementById('form-impressions').value = data.metrics.impressions || '';
@@ -1008,6 +1219,8 @@
                         const defaultImg = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>";
                         document.getElementById(`p-img-prev-${i}`).src = p.image ? p.image : defaultImg;
                     }
+                    inputFormCompareWeek.value = data.compareWith || '';
+                    inputFormAnalisis.value = data.notes?.['note-analisis'] || '';
                 } else {
                     const preservedStart = inputFormDateStart.value; const preservedEnd = inputFormDateEnd.value; const preservedWeekPicker = inputFormWeekPicker.value;
                     document.getElementById('manual-data-form').reset();
@@ -1016,6 +1229,8 @@
                     if (preservedWeekPicker) inputFormWeekPicker.value = preservedWeekPicker;
                     if (weekStr) { inputFormWeek.value = weekStr; formPeriodPreview.textContent = `Período: ${weekStr}`; } 
                     else { updatePeriodFromPickers(); }
+                    inputFormCompareWeek.value = '';
+                    inputFormAnalisis.value = '';
                     for(let i=0; i<10; i++) {
                         const imgEl = document.getElementById(`p-img-prev-${i}`);
                         if(imgEl) imgEl.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23cbd5e1'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'/></svg>";
@@ -1063,7 +1278,12 @@
                         Number(document.getElementById('d5').value)||0, Number(document.getElementById('d6').value)||0,
                         Number(document.getElementById('d7').value)||0
                     ],
-                    notes: existingNotes, topPosts: topPostsArray
+                    notes: {
+                        ...existingNotes,
+                        'note-analisis': inputFormAnalisis.value || existingNotes['note-analisis'] || ''
+                    },
+                    compareWith: inputFormCompareWeek.value || '',
+                    topPosts: topPostsArray
                 };
 
                 const originalText = btnSaveData.innerHTML;
