@@ -585,11 +585,27 @@
                 return `${s.getDate()} de ${mesInicio} al ${e.getDate()} de ${mesFin}`;
             }
 
+            function isWeekInputSupported() {
+                const test = document.createElement('input');
+                test.setAttribute('type', 'week');
+                test.value = '2020-W01';
+                return test.type === 'week' && test.value === '2020-W01';
+            }
+
+            function applyWeekInputFallback() {
+                if (!isWeekInputSupported()) {
+                    inputGlobalWeek.type = 'date';
+                    inputFormWeekPicker.type = 'date';
+                    inputGlobalWeek.title = 'Selecciona una fecha para calcular la semana';
+                    inputFormWeekPicker.title = 'Selecciona una fecha para calcular la semana';
+                }
+            }
+
             function setPeriodPickers(startISO, endISO) {
                 if (!startISO || !endISO) return;
                 inputFormDateStart.value = startISO;
                 inputFormDateEnd.value = endISO;
-                inputFormWeekPicker.value = getISOWeekString(parseLocalDate(startISO));
+                inputFormWeekPicker.value = inputFormWeekPicker.type === 'week' ? getISOWeekString(parseLocalDate(startISO)) : startISO;
                 const name = formatPeriodName(startISO, endISO);
                 inputFormWeek.value = name;
                 formPeriodPreview.textContent = `Período: ${name}`;
@@ -606,7 +622,7 @@
                 const name = formatPeriodName(start, end);
                 inputFormWeek.value = name;
                 formPeriodPreview.textContent = `Período: ${name}`;
-                inputFormWeekPicker.value = getISOWeekString(parseLocalDate(start));
+                inputFormWeekPicker.value = inputFormWeekPicker.type === 'week' ? getISOWeekString(parseLocalDate(start)) : start;
             }
 
             function findPeriodKeyByDates(startISO, endISO) {
@@ -622,7 +638,9 @@
             function syncGlobalWeekPicker(weekStr) {
                 const data = appData[weekStr];
                 if (data && data.dateStart) {
-                    inputGlobalWeek.value = getISOWeekString(parseLocalDate(data.dateStart));
+                    inputGlobalWeek.value = inputGlobalWeek.type === 'week'
+                        ? getISOWeekString(parseLocalDate(data.dateStart))
+                        : data.dateStart;
                 } else {
                     inputGlobalWeek.value = '';
                 }
@@ -683,6 +701,7 @@
                 renderTopPostsInput();
                 updatePeriodDatalist();
                 
+                applyWeekInputFallback();
                 if(currentWeek) {
                     if(!mainChart) initChart();
                     loadWeekData(currentWeek);
@@ -878,7 +897,8 @@
 
             inputGlobalWeek.addEventListener('change', (e) => {
                 if (!e.target.value) return;
-                const { start, end } = getWeekRangeFromISOWeek(e.target.value);
+                const weekValue = inputGlobalWeek.type === 'week' ? e.target.value : getISOWeekString(parseLocalDate(e.target.value));
+                const { start, end } = getWeekRangeFromISOWeek(weekValue);
                 const startISO = toISODateLocal(start);
                 const endISO = toISODateLocal(end);
                 const periodKey = findPeriodKeyByDates(startISO, endISO);
@@ -887,7 +907,8 @@
 
             inputFormWeekPicker.addEventListener('change', (e) => {
                 if (!e.target.value) return;
-                const { start, end } = getWeekRangeFromISOWeek(e.target.value);
+                const weekValue = inputFormWeekPicker.type === 'week' ? e.target.value : getISOWeekString(parseLocalDate(e.target.value));
+                const { start, end } = getWeekRangeFromISOWeek(weekValue);
                 const startISO = toISODateLocal(start);
                 const endISO = toISODateLocal(end);
                 setPeriodPickers(startISO, endISO);
